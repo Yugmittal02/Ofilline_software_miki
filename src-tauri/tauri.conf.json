@@ -1,0 +1,56 @@
+{
+  "productName": "BillEasy",
+  "version": "2.6.3",
+  "identifier": "com.billeasy.app",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "BillEasy",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 1024,
+        "minHeight": 700,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://res.cloudinary.com; frame-src 'self' blob:; connect-src 'self' https://license-server-a1ti.onrender.com https://api.cloudinary.com https://res.cloudinary.com ipc: http://ipc.localhost"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis", "msi"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "perMachine"
+      },
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDZCRUQ5Mzg3MTM5RjZFMEEKUldRS2JwOFRoNVB0YXh4NVlUMS9ja3NoQ0k1TFdNQ2FTQldrZ0VPcE5BTzNqcFFtSDNmeTM5NWUK",
+      "endpoints": [
+        "https://github.com/ayushrathore1/billeasy/releases/latest/download/latest.json"
+      ],
+      "dialog": false
+    }
+  }
+}

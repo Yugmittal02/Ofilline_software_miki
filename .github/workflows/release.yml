@@ -1,0 +1,82 @@
+name: Build and Release BillEasy
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+      - release
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    permissions:
+      contents: write
+
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Cache Rust dependencies
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+          cache-on-failure: true
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: v__VERSION__
+          releaseName: 'BillEasy v__VERSION__'
+          releaseBody: |
+            ## BillEasy v__VERSION__ — Production Release
+
+            ### What's New in v2.6
+            - 🖨️ **80mm receipt paper** — Full redesign with premium layout, double-size shop name, bold text (ESC E + double-strike), decorative `=` dividers, two-column invoice meta, word-wrapped addresses
+            - 🔐 **License revalidation** — App now periodically checks with the server every 5 minutes. If a key is deactivated/unbound from the admin panel, the app locks immediately
+            - 📄 **HTML receipt upgrade** — 80mm width with proper @page print rules, responsive text, premium typography, and generous padding
+            - ✨ **Enhanced ESC/POS** — New helper methods: double_divider, two_col, wrap_center for better thermal print output
+
+            ### Previous Features
+            - 🖨️ ESC/POS receipt engine with logo, QR code, bold & double-size text
+            - 📊 Auto Excel export — every order saved to CSV (Documents/BillEasy/)
+            - 💾 Data persists across reinstalls (stored in Documents folder)
+            - 📦 160+ default menu items pre-loaded on fresh install
+            - ⌨️ Physical keyboard support for PIN entry
+            - 🔒 Admin PIN security for Setup & History
+            - 🎨 Premium bakery POS UI with warm theme
+
+            ### Download & Install
+            1. Download **BillEasy_x64-setup.exe** below
+            2. Right-click → Properties → tick **Unblock** → OK
+            3. Double-click to install
+            4. Enter your license key when prompted
+
+            ### For Existing Users
+            - Your data is safe — the app auto-migrates to Documents/BillEasy/
+            - The update will preserve all your orders and settings
+          releaseDraft: false
+          prerelease: false
+          args: --target x86_64-pc-windows-msvc
