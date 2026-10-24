@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useCartStore } from '../store/cartStore'
 import { useSettingsStore } from '../store/settingsStore'
 import { useInventoryStore } from '../store/inventoryStore'
