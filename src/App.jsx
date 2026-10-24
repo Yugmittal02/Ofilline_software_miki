@@ -8,16 +8,12 @@ import History from './pages/History'
 import Recent from './pages/Recent'
 import Inventory from './pages/Inventory'
 import UpdateBanner from './components/UpdateBanner'
-import PasswordGate from './components/PasswordGate'
 
 export default function App() {
   const [licenseValid, setLicenseValid] = useState(null)
   const [activeTab, setActiveTab] = useState('pos')
   const [updateAvailable, setUpdateAvailable] = useState(null)
-  const [isAdminAuth, setIsAdminAuth] = useState(false)
-  const [showPasswordGate, setShowPasswordGate] = useState(false)
-  const [pendingTab, setPendingTab] = useState(null)
-  const { fetchSettings, hasAdminPin } = useSettingsStore()
+  const { fetchSettings } = useSettingsStore()
 
   useEffect(() => {
     let cancelled = false
@@ -81,19 +77,7 @@ export default function App() {
   }, [licenseValid])
 
   const handleTabClick = (tabId) => {
-    const protectedTabs = ['setup', 'history', 'inventory']
-    if (protectedTabs.includes(tabId) && !isAdminAuth) {
-      setPendingTab(tabId)
-      setShowPasswordGate(true)
-      return
-    }
     setActiveTab(tabId)
-  }
-
-  const handleUnlock = () => {
-    setIsAdminAuth(true)
-    setShowPasswordGate(false)
-    if (pendingTab) { setActiveTab(pendingTab); setPendingTab(null) }
   }
 
   if (licenseValid === null) {
@@ -123,9 +107,9 @@ export default function App() {
   const tabs = [
     { id: 'pos', label: 'Billing', icon: '🧾' },
     { id: 'recent', label: 'Recent', icon: '📊' },
-    { id: 'inventory', label: 'Inventory', icon: '📦', locked: !isAdminAuth },
-    { id: 'setup', label: 'Setup', icon: '⚙️', locked: !isAdminAuth },
-    { id: 'history', label: 'History', icon: '📋', locked: !isAdminAuth },
+    { id: 'inventory', label: 'Inventory', icon: '📦' },
+    { id: 'setup', label: 'Setup', icon: '⚙️' },
+    { id: 'history', label: 'History', icon: '📋' },
   ]
 
   return (
@@ -152,17 +136,9 @@ export default function App() {
             >
               <span className="mr-1">{tab.icon}</span>
               {tab.label}
-              {tab.locked && <span className="ml-1 text-[10px] opacity-50">🔒</span>}
             </button>
           ))}
         </div>
-
-        {isAdminAuth && (
-          <div className="ml-auto flex items-center gap-2">
-            <span className="text-xs text-emerald-600 font-medium bg-emerald-50 px-2 py-1 rounded-full">🔓 Admin</span>
-            <button onClick={() => setIsAdminAuth(false)} className="text-xs text-stone-400 hover:text-stone-600 font-medium">Lock</button>
-          </div>
-        )}
       </nav>
 
       <main className="flex-1 overflow-hidden">
@@ -172,13 +148,6 @@ export default function App() {
         {activeTab === 'setup' && <Setup />}
         {activeTab === 'history' && <History />}
       </main>
-
-      {showPasswordGate && (
-        <PasswordGate
-          onUnlock={handleUnlock}
-          onCancel={() => { setShowPasswordGate(false); setPendingTab(null) }}
-        />
-      )}
     </div>
   )
 }
