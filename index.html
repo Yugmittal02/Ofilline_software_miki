@@ -10,7 +10,16 @@
     <title>BillEasy</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Inline fallback loader — shown before React mounts -->
+      <div id="preload-spinner" style="display:flex;align-items:center;justify-content:center;height:100vh;background:#fff7ed;">
+        <div style="text-align:center">
+          <div style="width:40px;height:40px;border:4px solid #fb923c;border-top-color:transparent;border-radius:50%;margin:0 auto 12px;animation:prespin 1s linear infinite"></div>
+          <p style="color:#78716c;font-size:14px;font-weight:500;font-family:Inter,system-ui,sans-serif;margin:0;">Starting BillEasy…</p>
+        </div>
+      </div>
+      <style>@keyframes prespin{to{transform:rotate(360deg)}}</style>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

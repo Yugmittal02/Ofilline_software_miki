@@ -20,9 +20,27 @@ export default function App() {
   const { fetchSettings, hasAdminPin } = useSettingsStore()
 
   useEffect(() => {
-    call('get_license_status')
-      .then(status => setLicenseValid(status.valid))
-      .catch(() => setLicenseValid(false))
+    let cancelled = false
+    const tryGetLicense = async (retries = 10) => {
+      for (let i = 0; i < retries; i++) {
+        try {
+          const status = await call('get_license_status')
+          if (!cancelled) setLicenseValid(status.valid)
+          return
+        } catch (err) {
+          console.warn(`[BillEasy] License check attempt ${i + 1}/${retries}:`, err)
+          if (i < retries - 1) {
+            await new Promise(r => setTimeout(r, 250))
+          } else {
+            // After all retries, show license activation screen instead of blank screen
+            if (!cancelled) setLicenseValid(false)
+          }
+        }
+      }
+      if (!cancelled) setLicenseValid(false)
+    }
+    tryGetLicense()
+    return () => { cancelled = true }
   }, [])
 
   // ── Periodic license re-validation with server ──
@@ -80,11 +98,20 @@ export default function App() {
 
   if (licenseValid === null) {
     return (
-      <div className="flex items-center justify-center h-full" style={{ background: '#fff7ed' }}>
-        <div className="text-center">
-          <div className="w-10 h-10 border-4 border-orange-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-stone-500 text-sm font-medium">Starting BillEasy…</p>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        height: '100%', background: '#fff7ed',
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: 40, height: 40,
+            border: '4px solid #fb923c', borderTopColor: 'transparent',
+            borderRadius: '50%', margin: '0 auto 12px',
+            animation: 'spin 1s linear infinite',
+          }} />
+          <p style={{ color: '#78716c', fontSize: 14, fontWeight: 500 }}>Starting BillEasy…</p>
         </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
       </div>
     )
   }

@@ -1,6 +1,6 @@
 {
   "productName": "BillEasy",
-  "version": "2.6.3",
+  "version": "2.6.4",
   "identifier": "com.billeasy.app",
   "build": {
     "frontendDist": "../dist",
@@ -22,7 +22,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://res.cloudinary.com; frame-src 'self' blob:; connect-src 'self' https://license-server-a1ti.onrender.com https://api.cloudinary.com https://res.cloudinary.com ipc: http://ipc.localhost"
+      "csp": null
     }
   },
   "bundle": {
@@ -48,7 +48,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDZCRUQ5Mzg3MTM5RjZFMEEKUldRS2JwOFRoNVB0YXh4NVlUMS9ja3NoQ0k1TFdNQ2FTQldrZ0VPcE5BTzNqcFFtSDNmeTM5NWUK",
       "endpoints": [
-        "https://github.com/ayushrathore1/billeasy/releases/latest/download/latest.json"
+        "https://github.com/Yugmittal02/Ofilline_software_miki/releases/latest/download/latest.json"
       ],
       "dialog": false
     }
