@@ -77,11 +77,13 @@ export default function POS() {
     setUnknownBarcode(null)
     if (product) {
       const cartItem = {
-        id: product.item_id || `p_${product.id}`,
+        id: product.id,
         name: product.name,
         price: product.selling_price,
         barcode: product.barcode,
         product_id: product.id,
+        track_inventory: product.track_inventory,
+        current_stock: product.current_stock,
       }
       increment(cartItem)
       showToast(`✓ ${product.name} added`, 'success')
@@ -158,7 +160,7 @@ export default function POS() {
                 {searchQuery ? 'No items match' : 'No items here'}
               </p>
               <p className="text-xs text-stone-400 mt-0.5">
-                {searchQuery ? 'Try different keywords' : 'Add items in Setup'}
+                {searchQuery ? 'Try different keywords' : 'Add products in Inventory'}
               </p>
             </div>
           </div>

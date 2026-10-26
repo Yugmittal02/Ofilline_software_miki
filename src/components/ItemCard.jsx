@@ -7,13 +7,23 @@ export default function ItemCard({ item }) {
   const decrement = useCartStore(s => s.decrement)
   const getThumbnail = useCloudinaryStore(s => s.getThumbnail)
 
+  const isTracked = item.track_inventory === true
+  const isOutOfStock = isTracked && (item.current_stock ?? 0) <= 0
+  const isMaxReached = isTracked && item.current_stock > 0 && qty >= item.current_stock
+  const isLowStock = isTracked && item.current_stock > 0 && item.current_stock <= (item.min_stock || 5)
+
   const isActive = qty > 0
   const thumbUrl = item.image_url ? getThumbnail(item.image_url, 160, 160) : null
 
+  const handleCardClick = () => {
+    if (isOutOfStock) return
+    increment(item)
+  }
+
   return (
     <div
-      className={`item-card ${isActive ? 'active' : ''}`}
-      onClick={() => increment(item)}
+      className={`item-card relative ${isActive ? 'active' : ''} ${isOutOfStock ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+      onClick={handleCardClick}
     >
       {/* Qty badge — top right */}
       {isActive && (
@@ -21,6 +31,17 @@ export default function ItemCard({ item }) {
           {qty}
         </span>
       )}
+
+      {/* Out of stock or low stock badge — top left */}
+      {isOutOfStock ? (
+        <span className="absolute top-1.5 left-1.5 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow z-10">
+          Out of Stock
+        </span>
+      ) : isLowStock ? (
+        <span className="absolute top-1.5 left-1.5 bg-amber-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow z-10" title={`${item.current_stock} remaining`}>
+          {item.current_stock} left
+        </span>
+      ) : null}
 
       {/* Image or emoji fallback */}
       {thumbUrl ? (
@@ -46,10 +67,21 @@ export default function ItemCard({ item }) {
         <div className="flex items-center gap-1.5 mt-1" onClick={e => e.stopPropagation()}>
           <button onClick={() => decrement(item.id)} className="add-btn minus sm">−</button>
           <span className="font-mono font-bold text-stone-800 text-sm min-w-[18px] text-center">{qty}</span>
-          <button onClick={() => increment(item)} className="add-btn sm">+</button>
+          <button
+            onClick={() => increment(item)}
+            disabled={isMaxReached}
+            className={`add-btn sm ${isMaxReached ? 'opacity-40 cursor-not-allowed' : ''}`}
+            title={isMaxReached ? 'Max available stock reached' : 'Add one more'}
+          >+</button>
         </div>
       ) : (
-        <button className="add-btn mt-1" onClick={(e) => { e.stopPropagation(); increment(item) }}>+</button>
+        <button
+          className={`add-btn mt-1 ${isOutOfStock ? 'opacity-40 cursor-not-allowed' : ''}`}
+          disabled={isOutOfStock}
+          onClick={(e) => { e.stopPropagation(); handleCardClick() }}
+        >
+          {isOutOfStock ? '✕' : '+'}
+        </button>
       )}
     </div>
   )

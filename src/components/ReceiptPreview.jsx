@@ -65,9 +65,16 @@ export default function ReceiptPreview({
   }, [html])
 
   const handlePrint = () => {
-    if (iframeRef.current) {
-      iframeRef.current.contentWindow.focus()
-      iframeRef.current.contentWindow.print()
+    try {
+      if (iframeRef.current?.contentWindow) {
+        iframeRef.current.contentWindow.focus()
+        iframeRef.current.contentWindow.print()
+      } else {
+        window.print()
+      }
+    } catch (e) {
+      console.warn('Print error:', e)
+      window.print()
     }
   }
 
@@ -115,8 +122,9 @@ export default function ReceiptPreview({
           ) : (
             <iframe
               ref={iframeRef}
+              srcDoc={html || ''}
               className="w-full bg-white rounded-lg shadow-md border-0"
-              style={{ height: '500px' }}
+              style={{ height: '520px' }}
               title="Receipt Preview"
             />
           )}

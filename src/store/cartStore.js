@@ -3,12 +3,24 @@ import { call } from '../lib/tauri'
 
 export const useCartStore = create((set, get) => ({
   quantities: {},  // { [itemId]: count }
-  items: {},       // { [itemId]: { id, name, price, barcode?, product_id? } }
+  items: {},       // { [itemId]: { id, name, price, barcode?, product_id?, track_inventory?, current_stock? } }
 
-  increment: (item) => set(s => ({
-    quantities: { ...s.quantities, [item.id]: (s.quantities[item.id] ?? 0) + 1 },
-    items: { ...s.items, [item.id]: item },
-  })),
+  increment: (item) => {
+    const s = get()
+    const isTracked = item.track_inventory === true
+    const currentQty = s.quantities[item.id] ?? 0
+
+    // Only limit quantity if item stock is actively tracked
+    if (isTracked && item.current_stock >= 0 && currentQty >= item.current_stock) {
+      return false
+    }
+
+    set({
+      quantities: { ...s.quantities, [item.id]: currentQty + 1 },
+      items: { ...s.items, [item.id]: item },
+    })
+    return true
+  },
 
   decrement: (itemId) => set(s => {
     const newQty = (s.quantities[itemId] ?? 0) - 1
@@ -21,32 +33,34 @@ export const useCartStore = create((set, get) => ({
   clear: () => set({ quantities: {}, items: {} }),
 
   // ── Barcode-aware add ──
-  // Looks up barcode → validates stock → adds to cart
-  // Returns { ok, product?, error? }
   addByBarcode: async (barcode) => {
     try {
       const product = await call('lookup_barcode', { barcode })
       if (!product) return { ok: false, error: 'unknown', barcode }
 
-      // Stock validation (tracked items only, stock >= 0)
-      if (product.current_stock === 0) {
+      const isTracked = product.track_inventory === true
+
+      // Stock validation (tracked items only)
+      if (isTracked && (product.current_stock ?? 0) <= 0) {
         return { ok: false, error: 'out_of_stock', product }
       }
 
-      const cartId = product.item_id || `p_${product.id}`
+      const cartId = product.id
       const currentQty = get().quantities[cartId] ?? 0
 
       // Prevent adding more than available (if tracked)
-      if (product.current_stock > 0 && currentQty >= product.current_stock) {
+      if (isTracked && product.current_stock > 0 && currentQty >= product.current_stock) {
         return { ok: false, error: 'max_stock', product, available: product.current_stock }
       }
 
       const cartItem = {
-        id: cartId,
+        id: product.id,
         name: product.name,
         price: product.selling_price,
         barcode: product.barcode,
         product_id: product.id,
+        track_inventory: isTracked,
+        current_stock: product.current_stock,
       }
       get().increment(cartItem)
       return { ok: true, product }
@@ -56,8 +70,8 @@ export const useCartStore = create((set, get) => ({
   },
 
   // Check if adding 1 more of this item would exceed stock
-  canAddMore: (itemId, maxStock) => {
-    if (maxStock < 0) return true // untracked
+  canAddMore: (itemId, maxStock, trackInventory) => {
+    if (!trackInventory || maxStock < 0) return true // untracked
     const currentQty = get().quantities[itemId] ?? 0
     return currentQty < maxStock
   },

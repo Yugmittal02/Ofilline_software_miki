@@ -25,8 +25,6 @@ export const useCloudinaryStore = create((set, get) => ({
   },
 
   saveConfig: async (cloudName, uploadPreset) => {
-    const { invoke } = window.__TAURI__?.core || {}
-    if (!invoke) return
     // Save as individual settings keys
     const settings = await call('get_settings')
     await call('save_settings', {

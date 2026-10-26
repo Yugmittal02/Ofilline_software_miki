@@ -32,13 +32,13 @@ export default function UnknownBarcodeModal({ barcode, onCreated, onClose }) {
         name: name.trim(),
         barcode,
         sku: '',
-        category: category.trim(),
+        category: category.trim() || 'General',
         purchase_price: 0,
         selling_price: parseFloat(price) || 0,
-        current_stock: 0,
+        track_inventory: false,
+        current_stock: -1,
         min_stock: 0,
         barcode_type: 'manufacturer',
-        item_id: null,
       })
       onCreated?.(product)
     } catch (e) {
@@ -63,7 +63,7 @@ export default function UnknownBarcodeModal({ barcode, onCreated, onClose }) {
   const filteredProducts = products.filter(p => {
     if (!searchTerm.trim()) return true
     const q = searchTerm.toLowerCase()
-    return p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)
+    return (p.name || '').toLowerCase().includes(q) || (p.sku || '').toLowerCase().includes(q)
   }).filter(p => !p.barcode || p.barcode === barcode) // Only show products without barcodes or same barcode
 
   return (

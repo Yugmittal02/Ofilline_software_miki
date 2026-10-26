@@ -2,7 +2,7 @@ export default function CategoryTabs({ categories, selectedId, onSelect, onSelec
   if (categories.length === 0) {
     return (
       <div className="px-4 py-2.5 border-b border-stone-100 bg-white">
-        <span className="text-sm text-stone-400">No categories — add in Setup</span>
+        <span className="text-sm text-stone-400">No categories — add in Inventory</span>
       </div>
     )
   }

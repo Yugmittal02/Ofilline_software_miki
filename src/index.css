@@ -447,6 +447,15 @@ html, body, #root {
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
+.settings-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .settings-card .settings-row {
   display: flex;
   align-items: center;

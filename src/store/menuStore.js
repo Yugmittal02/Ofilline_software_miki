@@ -12,11 +12,14 @@ export const useMenuStore = create((set, get) => ({
     set({ loading: true })
     try {
       const categories = await call('get_categories')
-      set({ categories, loading: false })
-      // Auto-select first if none selected
-      if (!get().selectedCategoryId && categories.length > 0) {
+      set({ categories: categories || [], loading: false })
+      const sel = get().selectedCategoryId
+      if (sel && (categories || []).some(c => c.id === sel)) {
+        await get().fetchItems(sel)
+      } else if (categories && categories.length > 0) {
         await get().fetchItems(categories[0].id)
-        set({ selectedCategoryId: categories[0].id })
+      } else {
+        await get().fetchAllItems()
       }
     } catch (e) {
       console.error('fetchCategories:', e)

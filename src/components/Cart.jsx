@@ -43,9 +43,10 @@ export default function Cart({ onPrintSuccess, onPrintError }) {
     setIsPrinting(true)
 
     const invItems = cartItems.map(i => ({
-      product_id: i.product_id || 0,
+      product_id: i.product_id || i.id,
       barcode: i.barcode || '',
       qty: i.qty,
+      track_inventory: i.track_inventory,
     }))
 
     try {
@@ -91,11 +92,23 @@ export default function Cart({ onPrintSuccess, onPrintError }) {
 
   const handlePdfPreview = async () => {
     if (cartItems.length === 0) return
+    const stockItems = cartItems.map(i => ({
+      product_id: i.product_id || i.id,
+      barcode: i.barcode || '',
+      qty: i.qty,
+      track_inventory: i.track_inventory,
+    }))
     try {
+      await validateCartStock(stockItems)
       const orderId = await call('save_order', {
         items: cartItems.map(i => ({ item_id: i.id, name: i.name, price: i.price, qty: i.qty })),
         subtotal, total: grandTotal,
       })
+      try {
+        await deductInventory(stockItems, String(orderId))
+      } catch (err) {
+        console.error('Inventory deduction error:', err)
+      }
       setPreviewOrderId(orderId)
       setShowPreview(true)
     } catch (e) {
@@ -225,9 +238,9 @@ export default function Cart({ onPrintSuccess, onPrintError }) {
           orderId={previewOrderId}
           items={cartItems.map(i => ({ item_id: i.id, name: i.name, price: i.price, qty: i.qty }))}
           total={grandTotal}
-          shopName={settings.shop_name}
-          shopAddress={settings.shop_address}
-          billFooter={settings.bill_footer}
+          shopName={settings?.shop_name || 'BillEasy Store'}
+          shopAddress={settings?.shop_address || ''}
+          billFooter={settings?.bill_footer || ''}
           onClose={handlePreviewClose}
         />
       )}

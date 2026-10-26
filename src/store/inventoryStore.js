@@ -3,6 +3,7 @@ import { call } from '../lib/tauri'
 
 export const useInventoryStore = create((set, get) => ({
   products: [],
+  categories: [],
   history: [],
   dashboardStats: null,
   lowStockProducts: [],
@@ -10,6 +11,36 @@ export const useInventoryStore = create((set, get) => ({
   searchQuery: '',
   filterCategory: '',
   filterStatus: '',
+
+  // ── Categories Management ──
+  fetchCategories: async () => {
+    try {
+      const categories = await call('get_categories')
+      set({ categories: categories || [] })
+      return categories
+    } catch (e) {
+      console.error('fetchCategories:', e)
+      return []
+    }
+  },
+
+  createCategory: async (name) => {
+    const cat = await call('create_category', { name: String(name).trim() })
+    await get().fetchCategories()
+    return cat
+  },
+
+  updateCategory: async (id, name, isActive, sortOrder) => {
+    await call('update_category', { id, name, isActive, sortOrder })
+    await get().fetchCategories()
+    await get().fetchProducts()
+  },
+
+  deleteCategory: async (id) => {
+    await call('delete_category', { id })
+    await get().fetchCategories()
+    await get().fetchProducts()
+  },
 
   // ── Product CRUD ──
   fetchProducts: async () => {
@@ -21,7 +52,7 @@ export const useInventoryStore = create((set, get) => ({
         category: filterCategory || null,
         status: filterStatus || null,
       })
-      set({ products, loading: false })
+      set({ products: products || [], loading: false })
     } catch (e) {
       console.error('fetchProducts:', e)
       set({ loading: false })
@@ -35,10 +66,12 @@ export const useInventoryStore = create((set, get) => ({
   createProduct: async (data) => {
     const pPrice = parseFloat(data.purchase_price ?? data.purchasePrice ?? 0) || 0
     const sPrice = parseFloat(data.selling_price ?? data.sellingPrice ?? 0) || 0
-    const cStock = parseInt(data.current_stock ?? data.currentStock ?? 0) || 0
-    const mStock = parseInt(data.min_stock ?? data.minStock ?? 0) || 0
+    const trackInventory = data.track_inventory !== undefined
+      ? Boolean(data.track_inventory)
+      : (data.current_stock != null && Number(data.current_stock) >= 0)
+    const cStock = trackInventory ? (parseInt(data.current_stock ?? data.currentStock ?? 0) || 0) : -1
+    const mStock = trackInventory ? (parseInt(data.min_stock ?? data.minStock ?? 5) || 5) : 0
     const bType = String(data.barcode_type ?? data.barcodeType ?? 'internal').trim()
-    const iId = data.item_id ?? data.itemId ?? null
 
     const payload = {
       name: String(data.name || '').trim(),
@@ -49,25 +82,30 @@ export const useInventoryStore = create((set, get) => ({
       purchase_price: pPrice,
       sellingPrice: sPrice,
       selling_price: sPrice,
+      trackInventory,
+      track_inventory: trackInventory,
       currentStock: cStock,
       current_stock: cStock,
       minStock: mStock,
       min_stock: mStock,
       barcodeType: bType,
       barcode_type: bType,
-      itemId: iId,
-      item_id: iId,
+      image_url: data.image_url || '',
     }
     const product = await call('create_product', payload)
     await get().fetchProducts()
+    await get().fetchCategories()
     return product
   },
 
   updateProduct: async (data) => {
     const pPrice = parseFloat(data.purchase_price ?? data.purchasePrice ?? 0) || 0
     const sPrice = parseFloat(data.selling_price ?? data.sellingPrice ?? 0) || 0
-    const mStock = parseInt(data.min_stock ?? data.minStock ?? 0) || 0
-    const iId = data.item_id ?? data.itemId ?? null
+    const trackInventory = data.track_inventory !== undefined
+      ? Boolean(data.track_inventory)
+      : (data.current_stock != null ? Number(data.current_stock) >= 0 : true)
+    const cStock = trackInventory ? (parseInt(data.current_stock ?? data.currentStock ?? 0) || 0) : -1
+    const mStock = trackInventory ? (parseInt(data.min_stock ?? data.minStock ?? 5) || 5) : 0
 
     const payload = {
       id: Number(data.id),
@@ -79,19 +117,24 @@ export const useInventoryStore = create((set, get) => ({
       purchase_price: pPrice,
       sellingPrice: sPrice,
       selling_price: sPrice,
+      trackInventory,
+      track_inventory: trackInventory,
+      currentStock: cStock,
+      current_stock: cStock,
       minStock: mStock,
       min_stock: mStock,
-      itemId: iId,
-      item_id: iId,
+      image_url: data.image_url || '',
     }
     const product = await call('update_product', payload)
     await get().fetchProducts()
+    await get().fetchCategories()
     return product
   },
 
   deleteProduct: async (id) => {
     await call('delete_product', { id: Number(id) })
     await get().fetchProducts()
+    await get().fetchCategories()
   },
 
   toggleProduct: async (id, enabled) => {
@@ -124,6 +167,7 @@ export const useInventoryStore = create((set, get) => ({
 
   deductInventory: async (items, invoiceNumber) => {
     await call('deduct_inventory', { items, invoiceNumber: String(invoiceNumber) })
+    await get().fetchProducts()
   },
 
   validateCartStock: async (items) => {
@@ -137,7 +181,7 @@ export const useInventoryStore = create((set, get) => ({
         productId: productId ?? null,
         limit: 100,
       })
-      set({ history })
+      set({ history: history || [] })
     } catch (e) {
       console.error('fetchHistory:', e)
     }
@@ -155,7 +199,7 @@ export const useInventoryStore = create((set, get) => ({
   fetchLowStockProducts: async () => {
     try {
       const products = await call('get_low_stock_products')
-      set({ lowStockProducts: products })
+      set({ lowStockProducts: products || [] })
     } catch (e) {
       console.error('fetchLowStockProducts:', e)
     }
@@ -163,6 +207,9 @@ export const useInventoryStore = create((set, get) => ({
 
   // ── Bulk Import ──
   bulkImport: async (csvData) => {
-    return await call('bulk_import_products', { csvData })
+    const res = await call('bulk_import_products', { csvData })
+    await get().fetchProducts()
+    await get().fetchCategories()
+    return res
   },
 }))
