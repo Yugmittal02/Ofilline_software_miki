@@ -108,7 +108,7 @@ export const useInventoryStore = create((set, get) => ({
     const mStock = trackInventory ? (parseInt(data.min_stock ?? data.minStock ?? 5) || 5) : 0
 
     const payload = {
-      id: Number(data.id),
+      id: isNaN(Number(data.id)) ? data.id : Number(data.id),
       name: String(data.name || '').trim(),
       barcode: String(data.barcode || '').trim(),
       sku: String(data.sku || '').trim(),
@@ -132,13 +132,15 @@ export const useInventoryStore = create((set, get) => ({
   },
 
   deleteProduct: async (id) => {
-    await call('delete_product', { id: Number(id) })
+    const safeId = isNaN(Number(id)) ? id : Number(id)
+    await call('delete_product', { id: safeId })
     await get().fetchProducts()
     await get().fetchCategories()
   },
 
   toggleProduct: async (id, enabled) => {
-    await call('toggle_product', { id: Number(id), enabled: Boolean(enabled) })
+    const safeId = isNaN(Number(id)) ? id : Number(id)
+    await call('toggle_product', { id: safeId, enabled: Boolean(enabled) })
     await get().fetchProducts()
   },
 

@@ -1,6 +1,6 @@
 {
   "productName": "BillEasy",
-  "version": "2.6.7",
+  "version": "2.6.8",
   "identifier": "com.billeasy.app",
   "build": {
     "frontendDist": "../dist",

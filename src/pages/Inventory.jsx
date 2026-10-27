@@ -460,33 +460,43 @@ export default function Inventory() {
 
                     {/* Actions */}
                     <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
-                          onClick={() => setShowStockModal({ product: p, mode: 'add' })}
+                          onClick={(e) => { e.stopPropagation(); setShowStockModal({ product: p, mode: 'add' }) }}
                           className="inv-action-btn green"
                           title="Add / Restock quantity"
                         >+</button>
                         {isTracked && (
                           <button
-                            onClick={() => setShowStockModal({ product: p, mode: 'reduce' })}
+                            onClick={(e) => { e.stopPropagation(); setShowStockModal({ product: p, mode: 'reduce' }) }}
                             className="inv-action-btn red"
                             title="Reduce stock"
                           >−</button>
                         )}
                         <button
-                          onClick={() => setShowAssignModal(p)}
+                          onClick={(e) => { e.stopPropagation(); setShowAssignModal(p) }}
                           className="inv-action-btn gray"
-                          title="Assign / scan barcode"
+                          title="Assign barcode"
                         >🔗</button>
                         <button
-                          onClick={() => { setEditingProduct(p); setShowProductModal(true) }}
-                          className="inv-action-btn blue"
-                          title="Edit product"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setEditingProduct(p)
+                            setShowProductModal(true)
+                          }}
+                          className="inv-action-btn blue font-semibold"
+                          title="Edit / Update product"
                         >✏️</button>
                         <button
-                          onClick={async () => {
-                            await toggleProduct(p.id, p.status === 'disabled')
-                            await syncBillingStore()
+                          onClick={async (e) => {
+                            e.stopPropagation()
+                            try {
+                              await toggleProduct(p.id, p.status === 'disabled')
+                              await syncBillingStore()
+                              showToast(p.status === 'disabled' ? `"${p.name}" enabled for billing` : `"${p.name}" disabled from billing`)
+                            } catch (err) {
+                              showToast(typeof err === 'string' ? err : 'Toggle failed', 'error')
+                            }
                           }}
                           className="inv-action-btn gray"
                           title={p.status === 'disabled' ? 'Enable for billing' : 'Disable from billing'}
@@ -494,11 +504,18 @@ export default function Inventory() {
                           {p.status === 'disabled' ? '▶' : '⏸'}
                         </button>
                         <button
-                          onClick={async () => {
-                            if (confirm(`Delete "${p.name}"? This removes it from billing and inventory.`)) {
-                              await deleteProduct(p.id)
-                              await syncBillingStore()
-                              showToast('Product deleted')
+                          onClick={async (e) => {
+                            e.stopPropagation()
+                            if (window.confirm(`Delete "${p.name}"? This removes it permanently from Inventory and Billing.`)) {
+                              try {
+                                await deleteProduct(p.id)
+                                await fetchProducts()
+                                await fetchCategories()
+                                await syncBillingStore()
+                                showToast(`"${p.name}" deleted successfully`)
+                              } catch (err) {
+                                showToast(typeof err === 'string' ? err : 'Failed to delete product', 'error')
+                              }
                             }
                           }}
                           className="inv-action-btn red"
@@ -773,11 +790,13 @@ export default function Inventory() {
             try {
               if (editingProduct) {
                 await updateProduct({ id: editingProduct.id, ...data })
-                showToast('Product updated successfully')
+                showToast(`"${data.name}" updated successfully`)
               } else {
                 await createProduct(data)
-                showToast('Product added to Inventory & Billing')
+                showToast(`"${data.name}" added to Inventory & Billing`)
               }
+              await fetchProducts()
+              await fetchCategories()
               await syncBillingStore()
               setShowProductModal(false)
               setEditingProduct(null)
@@ -1087,15 +1106,18 @@ function ProductModal({ product, categories, onSave, onClose }) {
         <div className="modal-footer pt-3 border-t border-stone-200 flex justify-end gap-2">
           <button onClick={onClose} className="btn-secondary text-sm py-2 px-5">Cancel</button>
           <button
-            onClick={() => onSave({
-              ...form,
-              selling_price: parseFloat(form.selling_price) || 0,
-              purchase_price: parseFloat(form.purchase_price) || 0,
-            })}
-            disabled={!form.name.trim() || form.selling_price === ''}
+            onClick={() => {
+              if (!form.name.trim()) return
+              onSave({
+                ...form,
+                selling_price: parseFloat(form.selling_price) || 0,
+                purchase_price: parseFloat(form.purchase_price) || 0,
+              })
+            }}
+            disabled={!form.name.trim() || form.selling_price === '' || isNaN(parseFloat(form.selling_price))}
             className="btn-primary text-sm py-2 px-6"
           >
-            {product ? 'Save Changes' : 'Create & Show in Billing'}
+            {product ? '✓ Save Changes' : '+ Create & Show in Billing'}
           </button>
         </div>
       </div>

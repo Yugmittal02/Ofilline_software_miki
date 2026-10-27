@@ -162,6 +162,8 @@ pub fn update_product(
     purchasePrice: Option<f64>,
     selling_price: Option<f64>,
     sellingPrice: Option<f64>,
+    current_stock: Option<i64>,
+    currentStock: Option<i64>,
     min_stock: Option<i64>,
     minStock: Option<i64>,
     item_id: Option<i64>,
@@ -176,6 +178,7 @@ pub fn update_product(
     let s_price = selling_price.or(sellingPrice).unwrap_or(0.0);
     let min_stk = min_stock.or(minStock).unwrap_or(0);
     let item_id_val = item_id.or(itemId);
+    let stock_val = current_stock.or(currentStock);
 
     // Check barcode uniqueness (excluding self)
     let exists: bool = db.query_row(
@@ -186,10 +189,25 @@ pub fn update_product(
         return Err(format!("Barcode '{}' already assigned to another product", barcode_val.trim()));
     }
 
-    db.execute(
-        "UPDATE products SET name=?1, barcode=?2, sku=?3, category=?4, purchase_price=?5, selling_price=?6, min_stock=?7, item_id=?8, updated_at=CURRENT_TIMESTAMP WHERE id=?9",
-        rusqlite::params![name.trim(), barcode_val.trim(), sku_val.trim(), cat_val.trim(), p_price, s_price, min_stk, item_id_val, id],
-    ).map_err(|e| e.to_string())?;
+    if let Some(stk) = stock_val {
+        db.execute(
+            "UPDATE products SET name=?1, barcode=?2, sku=?3, category=?4, purchase_price=?5, selling_price=?6, current_stock=?7, min_stock=?8, item_id=?9, updated_at=CURRENT_TIMESTAMP WHERE id=?10",
+            rusqlite::params![name.trim(), barcode_val.trim(), sku_val.trim(), cat_val.trim(), p_price, s_price, stk, min_stk, item_id_val, id],
+        ).map_err(|e| e.to_string())?;
+    } else {
+        db.execute(
+            "UPDATE products SET name=?1, barcode=?2, sku=?3, category=?4, purchase_price=?5, selling_price=?6, min_stock=?7, item_id=?8, updated_at=CURRENT_TIMESTAMP WHERE id=?9",
+            rusqlite::params![name.trim(), barcode_val.trim(), sku_val.trim(), cat_val.trim(), p_price, s_price, min_stk, item_id_val, id],
+        ).map_err(|e| e.to_string())?;
+    }
+
+    // Keep items table synchronized if item_id exists
+    if let Some(iid) = item_id_val {
+        let _ = db.execute(
+            "UPDATE items SET name=?1, price=?2 WHERE id=?3",
+            rusqlite::params![name.trim(), s_price, iid],
+        );
+    }
 
     // Recalculate status
     recalculate_status(&db, id)?;
@@ -206,7 +224,14 @@ pub fn delete_product(id: i64) -> Result<(), String> {
         rusqlite::params![id], parse_product
     ).map_err(|e| e.to_string())?;
 
-    log_inventory(&db, id, &product.name, &product.barcode, product.current_stock, -product.current_stock, 0, "product_deleted", "", "")?;
+    // Clear foreign key records from inventory_history before deleting product
+    let _ = db.execute("DELETE FROM inventory_history WHERE product_id = ?1", rusqlite::params![id]);
+
+    // Also delete from items if linked
+    if let Some(iid) = product.item_id {
+        let _ = db.execute("DELETE FROM items WHERE id = ?1", rusqlite::params![iid]);
+    }
+
     db.execute("DELETE FROM products WHERE id = ?1", rusqlite::params![id]).map_err(|e| e.to_string())?;
     Ok(())
 }

@@ -128,12 +128,12 @@ pub fn get_orders(date: Option<String>) -> Result<Vec<Order>, String> {
 
     let (sql, param_date): (&str, Option<String>) = if date.is_some() {
         (
-            "SELECT id, items_json, subtotal, total, created_at FROM orders WHERE date(created_at)=?1 ORDER BY id DESC LIMIT 100",
+            "SELECT id, items_json, subtotal, total, created_at FROM orders WHERE (date(created_at, 'localtime')=?1 OR date(created_at)=?1) ORDER BY id DESC LIMIT 1000",
             date,
         )
     } else {
         (
-            "SELECT id, items_json, subtotal, total, created_at FROM orders ORDER BY id DESC LIMIT 100",
+            "SELECT id, items_json, subtotal, total, created_at FROM orders ORDER BY id DESC LIMIT 1000",
             None,
         )
     };

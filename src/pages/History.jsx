@@ -14,9 +14,17 @@ function getLocalDateStr(d = new Date()) {
 function getOrderDateStr(createdAt) {
   if (!createdAt) return ''
   try {
-    const d = new Date(createdAt)
-    if (isNaN(d.getTime())) return String(createdAt).slice(0, 10)
-    return getLocalDateStr(d)
+    const s = String(createdAt).trim()
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+      if (s.includes('T') && (s.includes('Z') || /[+-]\d{2}:\d{2}$/.test(s))) {
+        const d = new Date(s)
+        if (!isNaN(d.getTime())) return getLocalDateStr(d)
+      }
+      return s.slice(0, 10)
+    }
+    const d = new Date(s)
+    if (!isNaN(d.getTime())) return getLocalDateStr(d)
+    return s.slice(0, 10)
   } catch {
     return String(createdAt).slice(0, 10)
   }
@@ -67,7 +75,16 @@ export default function History() {
   }
 
   const loadAllOrders = async () => {
-    try { setAllOrders(await call('get_orders', { date: null })) } catch (e) { console.error(e) }
+    try {
+      const o = await call('get_orders', { date: null })
+      const safe = (o || []).map(order => ({
+        ...order,
+        items: Array.isArray(order.items)
+          ? order.items
+          : (typeof order.items === 'string' ? (() => { try { return JSON.parse(order.items) } catch { return [] } })() : [])
+      }))
+      setAllOrders(safe)
+    } catch (e) { console.error(e) }
   }
 
   const loadOrders = async (selectedDate) => {
@@ -75,7 +92,13 @@ export default function History() {
     try {
       const d = selectedDate ?? date
       const o = await call('get_orders', { date: d || null })
-      setOrders(o || [])
+      const safe = (o || []).map(order => ({
+        ...order,
+        items: Array.isArray(order.items)
+          ? order.items
+          : (typeof order.items === 'string' ? (() => { try { return JSON.parse(order.items) } catch { return [] } })() : [])
+      }))
+      setOrders(safe)
       setPage(0)
     } catch (e) { console.error(e) }
     finally { setLoading(false) }
@@ -169,15 +192,15 @@ export default function History() {
       if (!orderDate) return false
       switch (itemDateFilter) {
         case 'today':
-          return orderDate === today || o.created_at?.startsWith(today)
+          return orderDate === today
         case 'yesterday':
-          return orderDate === yesterdayStr || o.created_at?.startsWith(yesterdayStr)
+          return orderDate === yesterdayStr
         case '7days':
           return orderDate >= d7Str && orderDate <= today
         case 'month':
           return orderDate.startsWith(currentMonth)
         case 'custom':
-          return orderDate === customItemDate || o.created_at?.startsWith(customItemDate)
+          return orderDate === customItemDate
         case 'all':
         default:
           return true
@@ -189,14 +212,20 @@ export default function History() {
   const itemSales = useMemo(() => {
     const itemMap = {}
     selectedPeriodOrders.forEach(o => {
-      (o.items || []).forEach(item => {
-        const key = item.name || 'Unknown'
+      let items = o.items || []
+      if (typeof items === 'string') {
+        try { items = JSON.parse(items) } catch { items = [] }
+      }
+      if (!Array.isArray(items)) items = []
+
+      items.forEach(item => {
+        const key = (item.name || '').trim() || 'Unknown'
         if (!itemMap[key]) {
           itemMap[key] = {
             name: key,
             qty: 0,
             revenue: 0,
-            price: item.price || 0,
+            price: Number(item.price) || 0,
             billCount: 0,
           }
         }

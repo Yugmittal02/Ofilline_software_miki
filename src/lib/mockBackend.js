@@ -51,105 +51,230 @@ const DEFAULT_SETTINGS = {
   admin_pin_hash: '',
 }
 
-// ── Default Categories ──
+// ── Default Categories (All 14 Cafe & Restaurant Categories) ──
 const DEFAULT_CATEGORIES = [
-  { id: 1, name: 'Beverages', sort_order: 1, is_active: true },
-  { id: 2, name: 'Snacks & Fast Food', sort_order: 2, is_active: true },
-  { id: 3, name: 'Meals & Combos', sort_order: 3, is_active: true },
-  { id: 4, name: 'Desserts', sort_order: 4, is_active: true },
+  { id: 1, name: 'Chinese', sort_order: 1, is_active: true },
+  { id: 2, name: 'Mojito', sort_order: 2, is_active: true },
+  { id: 3, name: 'Wrap', sort_order: 3, is_active: true },
+  { id: 4, name: 'Pasta', sort_order: 4, is_active: true },
+  { id: 5, name: 'French Fries', sort_order: 5, is_active: true },
+  { id: 6, name: 'Coffee & Shakes', sort_order: 6, is_active: true },
+  { id: 7, name: 'Sandwich', sort_order: 7, is_active: true },
+  { id: 8, name: 'Maggi', sort_order: 8, is_active: true },
+  { id: 9, name: 'Pizza', sort_order: 9, is_active: true },
+  { id: 10, name: 'Burger', sort_order: 10, is_active: true },
+  { id: 11, name: 'Patties', sort_order: 11, is_active: true },
+  { id: 12, name: 'Pastries', sort_order: 12, is_active: true },
+  { id: 13, name: 'Cakes', sort_order: 13, is_active: true },
+  { id: 14, name: 'Momos', sort_order: 14, is_active: true },
 ]
 
-// ── Default Products (Unified Catalog) ──
+// ── Default Products (Unified 106 Products Catalog) ──
 // track_inventory is OPTIONAL per product:
-// false = untracked (always available in billing, e.g. tea, freshly cooked food)
-// true = tracked (stock decrements on billing, e.g. packaged goods, ice creams)
+// false = untracked (always available in billing, e.g. cooked food, fresh shakes, snacks)
+// true = tracked (stock decrements on billing, e.g. packaged goods, limited items)
 const DEFAULT_PRODUCTS = [
-  {
-    id: 1, name: 'Masala Chai', category: 'Beverages', purchase_price: 6, selling_price: 20,
-    track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1001', sku: 'BEV-001',
-    barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-  },
-  {
-    id: 2, name: 'Cold Coffee', category: 'Beverages', purchase_price: 20, selling_price: 60,
-    track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1002', sku: 'BEV-002',
-    barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-  },
-  {
-    id: 3, name: 'Fresh Lime Soda', category: 'Beverages', purchase_price: 12, selling_price: 40,
-    track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1003', sku: 'BEV-003',
-    barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-  },
-  {
-    id: 4, name: 'Veg Burger', category: 'Snacks & Fast Food', purchase_price: 30, selling_price: 80,
-    track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1004', sku: 'SNK-001',
-    barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-  },
-  {
-    id: 5, name: 'French Fries', category: 'Snacks & Fast Food', purchase_price: 25, selling_price: 70,
-    track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1005', sku: 'SNK-002',
-    barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-  },
-  {
-    id: 6, name: 'Grilled Sandwich', category: 'Snacks & Fast Food', purchase_price: 35, selling_price: 90,
-    track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1006', sku: 'SNK-003',
-    barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-  },
-  {
-    id: 7, name: 'Special Thali', category: 'Meals & Combos', purchase_price: 60, selling_price: 150,
-    track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1007', sku: 'MEL-001',
-    barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-  },
-  {
-    id: 8, name: 'Paneer Fried Rice', category: 'Meals & Combos', purchase_price: 50, selling_price: 130,
-    track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1008', sku: 'MEL-002',
-    barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-  },
-  {
-    id: 9, name: 'Gulab Jamun (2 pcs)', category: 'Desserts', purchase_price: 18, selling_price: 50,
-    track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1009', sku: 'DES-001',
-    barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-  },
-  {
-    id: 10, name: 'Vanilla Ice Cream', category: 'Desserts', purchase_price: 15, selling_price: 40,
-    track_inventory: true, current_stock: 30, min_stock: 5, barcode: '1010', sku: 'DES-002',
-    barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-  },
+  // Chinese
+  { id: 101, name: 'Chilly Paneer', category: 'Chinese', purchase_price: 50, selling_price: 100, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1001', sku: 'CHN-001', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 102, name: 'Honey Chilli Potato', category: 'Chinese', purchase_price: 60, selling_price: 120, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1002', sku: 'CHN-002', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 103, name: 'Garlic Chili Potato', category: 'Chinese', purchase_price: 65, selling_price: 130, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1003', sku: 'CHN-003', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 104, name: 'Chili Potato', category: 'Chinese', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1004', sku: 'CHN-004', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 105, name: 'Singapore Noodles', category: 'Chinese', purchase_price: 50, selling_price: 100, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1005', sku: 'CHN-005', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 106, name: 'Chili Garlic Noodles', category: 'Chinese', purchase_price: 45, selling_price: 90, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1006', sku: 'CHN-006', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 107, name: 'Hakka Noodles', category: 'Chinese', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1007', sku: 'CHN-007', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 108, name: 'Veg Noodles', category: 'Chinese', purchase_price: 30, selling_price: 60, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1008', sku: 'CHN-008', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+
+  // Mojito
+  { id: 201, name: 'Classic Mojito', category: 'Mojito', purchase_price: 30, selling_price: 70, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1009', sku: 'MOJ-001', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 202, name: 'Black Cobra', category: 'Mojito', purchase_price: 35, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1010', sku: 'MOJ-002', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 203, name: 'Blue Ocean', category: 'Mojito', purchase_price: 35, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1011', sku: 'MOJ-003', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 204, name: 'Virgin Mojito', category: 'Mojito', purchase_price: 35, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1012', sku: 'MOJ-004', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 205, name: 'Apple Peach Mojito', category: 'Mojito', purchase_price: 35, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1013', sku: 'MOJ-005', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 206, name: 'Watermelon Mojito', category: 'Mojito', purchase_price: 35, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1014', sku: 'MOJ-006', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 207, name: 'Blackcurrant Mojito', category: 'Mojito', purchase_price: 35, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1015', sku: 'MOJ-007', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 208, name: 'Strawberry Mojito', category: 'Mojito', purchase_price: 35, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1016', sku: 'MOJ-008', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+
+  // Wrap
+  { id: 301, name: 'Veg Wrap', category: 'Wrap', purchase_price: 35, selling_price: 70, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1017', sku: 'WRP-001', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 302, name: 'Paneer Wrap', category: 'Wrap', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1018', sku: 'WRP-002', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 303, name: 'SPB Wrap', category: 'Wrap', purchase_price: 45, selling_price: 90, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1019', sku: 'WRP-003', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+
+  // Pasta
+  { id: 401, name: 'Red Sauce Pasta', category: 'Pasta', purchase_price: 30, selling_price: 60, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1020', sku: 'PST-001', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 402, name: 'White Sauce Pasta', category: 'Pasta', purchase_price: 35, selling_price: 70, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1021', sku: 'PST-002', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 403, name: 'Cheese Red Pasta', category: 'Pasta', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1022', sku: 'PST-003', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 404, name: 'Tandoori Sauce Pasta', category: 'Pasta', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1023', sku: 'PST-004', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 405, name: 'Makhani Sauce Pasta', category: 'Pasta', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1024', sku: 'PST-005', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 406, name: 'Pink Sauce Pasta', category: 'Pasta', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1025', sku: 'PST-006', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+
+  // French Fries
+  { id: 501, name: 'Salt Fries', category: 'French Fries', purchase_price: 25, selling_price: 50, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1026', sku: 'FF-001', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 502, name: 'Masala Fries', category: 'French Fries', purchase_price: 25, selling_price: 50, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1027', sku: 'FF-002', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 503, name: 'Peri Peri Fries', category: 'French Fries', purchase_price: 30, selling_price: 60, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1028', sku: 'FF-003', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 504, name: 'Cheese Loaded Fries', category: 'French Fries', purchase_price: 35, selling_price: 70, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1029', sku: 'FF-004', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 505, name: 'Tandoori Fries', category: 'French Fries', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1030', sku: 'FF-005', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+
+  // Coffee & Shakes
+  { id: 601, name: 'Vanilla Shake', category: 'Coffee & Shakes', purchase_price: 30, selling_price: 60, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1031', sku: 'SHK-001', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 602, name: 'Strawberry Shake', category: 'Coffee & Shakes', purchase_price: 30, selling_price: 60, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1032', sku: 'SHK-002', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 603, name: 'Butterscotch Shake', category: 'Coffee & Shakes', purchase_price: 30, selling_price: 60, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1033', sku: 'SHK-003', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 604, name: 'Pineapple Shake', category: 'Coffee & Shakes', purchase_price: 30, selling_price: 60, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1034', sku: 'SHK-004', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 605, name: 'Oreo Shake', category: 'Coffee & Shakes', purchase_price: 30, selling_price: 60, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1035', sku: 'SHK-005', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 606, name: 'Cold Coffee', category: 'Coffee & Shakes', purchase_price: 30, selling_price: 60, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1036', sku: 'SHK-006', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 607, name: 'KitKat Shake', category: 'Coffee & Shakes', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1037', sku: 'SHK-007', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 608, name: 'Blueberry Shake', category: 'Coffee & Shakes', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1038', sku: 'SHK-008', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 609, name: 'Rajbhog Shake', category: 'Coffee & Shakes', purchase_price: 50, selling_price: 100, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1039', sku: 'SHK-009', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 610, name: 'American Nuts Shake', category: 'Coffee & Shakes', purchase_price: 50, selling_price: 100, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1040', sku: 'SHK-010', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 611, name: 'Kesar Pista Shake', category: 'Coffee & Shakes', purchase_price: 50, selling_price: 100, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1041', sku: 'SHK-011', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 612, name: 'Rose Milk Shake', category: 'Coffee & Shakes', purchase_price: 50, selling_price: 100, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1042', sku: 'SHK-012', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 613, name: 'Pan Shake', category: 'Coffee & Shakes', purchase_price: 50, selling_price: 100, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1043', sku: 'SHK-013', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 614, name: 'Black Current Shake', category: 'Coffee & Shakes', purchase_price: 50, selling_price: 100, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1044', sku: 'SHK-014', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 615, name: 'Anjeer Shake', category: 'Coffee & Shakes', purchase_price: 55, selling_price: 110, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1045', sku: 'SHK-015', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 616, name: 'Cold Coffee with Ice Cream', category: 'Coffee & Shakes', purchase_price: 35, selling_price: 70, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1046', sku: 'SHK-016', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 617, name: 'Papaya Shake', category: 'Coffee & Shakes', purchase_price: 25, selling_price: 50, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1047', sku: 'SHK-017', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 618, name: 'Mango Shake', category: 'Coffee & Shakes', purchase_price: 30, selling_price: 60, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1048', sku: 'SHK-018', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 619, name: 'Chocolate Shake', category: 'Coffee & Shakes', purchase_price: 30, selling_price: 60, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1049', sku: 'SHK-019', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+
+  // Sandwich
+  { id: 701, name: 'Veg Sandwich', category: 'Sandwich', purchase_price: 35, selling_price: 70, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1050', sku: 'SND-001', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 702, name: 'Paneer Sandwich', category: 'Sandwich', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1051', sku: 'SND-002', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 703, name: 'Corn Mayo Sandwich', category: 'Sandwich', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1052', sku: 'SND-003', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 704, name: 'Tandoori Sandwich', category: 'Sandwich', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1053', sku: 'SND-004', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 705, name: 'Paneer Special Sandwich', category: 'Sandwich', purchase_price: 45, selling_price: 90, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1054', sku: 'SND-005', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 706, name: 'Sev Onion Sandwich', category: 'Sandwich', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1055', sku: 'SND-006', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 707, name: 'Tandoori Paneer Corn Sandwich', category: 'Sandwich', purchase_price: 50, selling_price: 100, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1056', sku: 'SND-007', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 708, name: 'Pizza Sandwich', category: 'Sandwich', purchase_price: 60, selling_price: 120, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1057', sku: 'SND-008', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+
+  // Maggi
+  { id: 801, name: 'Plain Maggi', category: 'Maggi', purchase_price: 25, selling_price: 50, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1058', sku: 'MAG-001', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 802, name: 'Veg Maggi', category: 'Maggi', purchase_price: 30, selling_price: 60, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1059', sku: 'MAG-002', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 803, name: 'Paneer Maggi', category: 'Maggi', purchase_price: 35, selling_price: 70, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1060', sku: 'MAG-003', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 804, name: 'Tandoori Maggi', category: 'Maggi', purchase_price: 35, selling_price: 70, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1061', sku: 'MAG-004', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 805, name: 'Corn Cheese Maggi', category: 'Maggi', purchase_price: 35, selling_price: 70, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1062', sku: 'MAG-005', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 806, name: 'Cheese Butter Maggi', category: 'Maggi', purchase_price: 35, selling_price: 70, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1063', sku: 'MAG-006', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 807, name: 'Butter Maggi', category: 'Maggi', purchase_price: 30, selling_price: 60, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1064', sku: 'MAG-007', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 808, name: 'Pizza Maggi', category: 'Maggi', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1065', sku: 'MAG-008', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 809, name: 'Pizza Paneer Maggi', category: 'Maggi', purchase_price: 45, selling_price: 90, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1066', sku: 'MAG-009', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 810, name: 'Tandoori Paneer Maggi', category: 'Maggi', purchase_price: 45, selling_price: 90, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1067', sku: 'MAG-010', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+
+  // Pizza
+  { id: 901, name: 'OTC Pizza', category: 'Pizza', purchase_price: 60, selling_price: 120, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1068', sku: 'PIZ-001', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 902, name: 'Sweet Corn Pizza', category: 'Pizza', purchase_price: 70, selling_price: 140, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1069', sku: 'PIZ-002', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 903, name: 'Paneer Pizza', category: 'Pizza', purchase_price: 85, selling_price: 170, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1070', sku: 'PIZ-003', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 904, name: 'Double Cheese Pizza', category: 'Pizza', purchase_price: 100, selling_price: 200, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1071', sku: 'PIZ-004', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 905, name: 'Four In One Pizza', category: 'Pizza', purchase_price: 115, selling_price: 230, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1072', sku: 'PIZ-005', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 906, name: 'Golden Baby Pizza', category: 'Pizza', purchase_price: 125, selling_price: 250, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1073', sku: 'PIZ-006', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 907, name: 'Extra Cheese Loaded Pizza', category: 'Pizza', purchase_price: 135, selling_price: 270, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1074', sku: 'PIZ-007', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 908, name: 'Tandoori Paneer Pizza', category: 'Pizza', purchase_price: 145, selling_price: 290, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1075', sku: 'PIZ-008', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 909, name: 'Makhani Pizza', category: 'Pizza', purchase_price: 110, selling_price: 220, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1076', sku: 'PIZ-009', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 910, name: 'Makhani Paneer Pizza', category: 'Pizza', purchase_price: 125, selling_price: 250, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1077', sku: 'PIZ-010', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 911, name: 'Tandoori Pizza', category: 'Pizza', purchase_price: 110, selling_price: 220, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1078', sku: 'PIZ-011', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 912, name: 'SPB Special Pizza', category: 'Pizza', purchase_price: 150, selling_price: 300, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1079', sku: 'PIZ-012', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+
+  // Burger
+  { id: 1001, name: 'Aloo Tikki Burger', category: 'Burger', purchase_price: 25, selling_price: 50, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1080', sku: 'BGR-001', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1002, name: 'Veg Burger', category: 'Burger', purchase_price: 30, selling_price: 60, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1081', sku: 'BGR-002', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1003, name: 'Veg Paneer Burger', category: 'Burger', purchase_price: 30, selling_price: 60, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1082', sku: 'BGR-003', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1004, name: 'Veg Cheese Burger', category: 'Burger', purchase_price: 30, selling_price: 60, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1083', sku: 'BGR-004', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1005, name: 'Tandoori Burger', category: 'Burger', purchase_price: 35, selling_price: 70, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1084', sku: 'BGR-005', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1006, name: 'Schezwan Burger', category: 'Burger', purchase_price: 35, selling_price: 70, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1085', sku: 'BGR-006', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1007, name: 'Makhani Burger', category: 'Burger', purchase_price: 35, selling_price: 70, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1086', sku: 'BGR-007', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1008, name: 'Makhani Paneer Burger', category: 'Burger', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1087', sku: 'BGR-008', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1009, name: 'Tandoori Paneer Burger', category: 'Burger', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1088', sku: 'BGR-009', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1010, name: 'Chilly Burger', category: 'Burger', purchase_price: 30, selling_price: 60, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1089', sku: 'BGR-010', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1011, name: 'Mexican Burger', category: 'Burger', purchase_price: 30, selling_price: 60, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1090', sku: 'BGR-011', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1012, name: 'SPB Special Burger', category: 'Burger', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1091', sku: 'BGR-012', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+
+  // Patties
+  { id: 1101, name: 'Plain Masala Patties', category: 'Patties', purchase_price: 8, selling_price: 15, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1092', sku: 'PAT-001', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1102, name: 'Masala Patties', category: 'Patties', purchase_price: 12, selling_price: 25, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1093', sku: 'PAT-002', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1103, name: 'Paneer Patties', category: 'Patties', purchase_price: 18, selling_price: 35, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1094', sku: 'PAT-003', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1104, name: 'Tandoori Patties', category: 'Patties', purchase_price: 20, selling_price: 40, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1095', sku: 'PAT-004', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1105, name: 'Cheese Patties', category: 'Patties', purchase_price: 20, selling_price: 40, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1096', sku: 'PAT-005', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1106, name: 'Cheese Tandoori Patties', category: 'Patties', purchase_price: 25, selling_price: 50, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1097', sku: 'PAT-006', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1107, name: 'Cheese Paneer Patties', category: 'Patties', purchase_price: 25, selling_price: 50, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1098', sku: 'PAT-007', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1108, name: 'Cheese Tandoori Paneer Patties', category: 'Patties', purchase_price: 30, selling_price: 60, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1099', sku: 'PAT-008', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1109, name: 'Tandoori Paneer Patties', category: 'Patties', purchase_price: 25, selling_price: 50, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1100', sku: 'PAT-009', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1110, name: 'Tandoori Mayo Patties', category: 'Patties', purchase_price: 25, selling_price: 50, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1101', sku: 'PAT-010', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1111, name: 'Cheese Tandoori Paneer Mayo', category: 'Patties', purchase_price: 35, selling_price: 70, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1102', sku: 'PAT-011', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1112, name: 'Mayonnaise Patties', category: 'Patties', purchase_price: 12, selling_price: 25, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1103', sku: 'PAT-012', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+
+  // Pastries
+  { id: 1201, name: 'Vanilla Pastry', category: 'Pastries', purchase_price: 15, selling_price: 30, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1104', sku: 'PAS-001', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1202, name: 'Butterscotch Pastry', category: 'Pastries', purchase_price: 20, selling_price: 40, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1105', sku: 'PAS-002', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1203, name: 'Black Forest Pastry', category: 'Pastries', purchase_price: 20, selling_price: 40, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1106', sku: 'PAS-003', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1204, name: 'Dark Chocolate Pastry', category: 'Pastries', purchase_price: 25, selling_price: 50, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1107', sku: 'PAS-004', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+
+  // Cakes
+  { id: 1301, name: 'Vanilla Cake 1 Pound', category: 'Cakes', purchase_price: 100, selling_price: 200, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1108', sku: 'CAK-001', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1302, name: 'Vanilla Cake 2 Pound', category: 'Cakes', purchase_price: 190, selling_price: 380, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1109', sku: 'CAK-002', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1303, name: 'Strawberry Cake 1 Pound', category: 'Cakes', purchase_price: 110, selling_price: 220, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1110', sku: 'CAK-003', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1304, name: 'Strawberry Cake 2 Pound', category: 'Cakes', purchase_price: 210, selling_price: 420, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1111', sku: 'CAK-004', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1305, name: 'Butterscotch Cake 1 Pound', category: 'Cakes', purchase_price: 125, selling_price: 250, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1112', sku: 'CAK-005', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1306, name: 'Butterscotch Cake 2 Pound', category: 'Cakes', purchase_price: 230, selling_price: 460, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1113', sku: 'CAK-006', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1307, name: 'Black Forest Cake 1 Pound', category: 'Cakes', purchase_price: 135, selling_price: 270, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1114', sku: 'CAK-007', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1308, name: 'Black Forest Cake 2 Pound', category: 'Cakes', purchase_price: 240, selling_price: 480, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1115', sku: 'CAK-008', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1309, name: 'Dark Chocolate Cake 1 Pound', category: 'Cakes', purchase_price: 150, selling_price: 300, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1116', sku: 'CAK-009', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1310, name: 'Dark Chocolate Cake 2 Pound', category: 'Cakes', purchase_price: 275, selling_price: 550, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1117', sku: 'CAK-010', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+
+  // Momos
+  { id: 1401, name: 'Veg Momos', category: 'Momos', purchase_price: 30, selling_price: 60, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1118', sku: 'MOM-001', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1402, name: 'Veg Fried Momos', category: 'Momos', purchase_price: 35, selling_price: 70, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1119', sku: 'MOM-002', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1403, name: 'Paneer Steam Momos', category: 'Momos', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1120', sku: 'MOM-003', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1404, name: 'Paneer Fried Momos', category: 'Momos', purchase_price: 45, selling_price: 90, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1121', sku: 'MOM-004', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1405, name: 'Veg Kurkure Momos', category: 'Momos', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1122', sku: 'MOM-005', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1406, name: 'Tandoori Veg Fried Momos', category: 'Momos', purchase_price: 50, selling_price: 100, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1123', sku: 'MOM-006', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1407, name: 'Paneer Kurkure Momos', category: 'Momos', purchase_price: 50, selling_price: 100, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1124', sku: 'MOM-007', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1408, name: 'Tandoori Paneer Fried Momos', category: 'Momos', purchase_price: 60, selling_price: 120, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1125', sku: 'MOM-008', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1409, name: 'Veg Tandoori Momos', category: 'Momos', purchase_price: 40, selling_price: 80, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1126', sku: 'MOM-009', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1410, name: 'Veg Afghani Momos', category: 'Momos', purchase_price: 45, selling_price: 90, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1127', sku: 'MOM-010', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1411, name: 'Paneer Tandoori Momos', category: 'Momos', purchase_price: 50, selling_price: 100, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1128', sku: 'MOM-011', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1412, name: 'Paneer Afghani Momos', category: 'Momos', purchase_price: 60, selling_price: 120, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1129', sku: 'MOM-012', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 1413, name: 'Paneer Gravy Momos', category: 'Momos', purchase_price: 65, selling_price: 130, track_inventory: false, current_stock: -1, min_stock: 0, barcode: '1130', sku: 'MOM-013', barcode_type: 'internal', status: 'active', image_url: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
 ]
 
-// ── Unified Products helper ──
+// ── Unified Products helper with automatic catalog migration ──
 function getUnifiedProducts() {
   let products = getItem(STORAGE_KEYS.PRODUCTS, null)
-  let items = getItem(STORAGE_KEYS.ITEMS, null)
-  let categories = getItem(STORAGE_KEYS.CATEGORIES, DEFAULT_CATEGORIES)
+  let categories = getItem(STORAGE_KEYS.CATEGORIES, null)
+  const isMigrated = getItem('billeasy_catalog_migrated_v2', false)
+  const deletedIds = getItem('billeasy_deleted_product_ids', [])
 
-  if (!products || !products.length) {
-    if (items && items.length > 0) {
-      // Migrate old menu items to products
-      products = items.map((it, idx) => {
-        const cat = categories.find(c => c.id === it.category_id)
-        return {
-          id: it.id,
-          name: it.name,
-          category: cat ? cat.name : 'General',
-          purchase_price: Math.round((it.price || 0) * 0.5),
-          selling_price: it.price || 0,
-          track_inventory: false,
-          current_stock: -1,
-          min_stock: 0,
-          status: it.is_active ? 'active' : 'disabled',
-          barcode: String(1000 + idx + 1),
-          sku: `SKU-${idx + 1}`,
-          barcode_type: 'internal',
-          image_url: it.image_url || '',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }
-      })
-    } else {
-      products = DEFAULT_PRODUCTS
-    }
-    setItem(STORAGE_KEYS.PRODUCTS, products)
+  // Ensure all 14 categories exist in localStorage
+  if (!categories || categories.length < DEFAULT_CATEGORIES.length) {
+    const existingCats = categories || []
+    const mergedCats = [...existingCats]
+    DEFAULT_CATEGORIES.forEach(dc => {
+      if (!mergedCats.some(c => (c.name || '').toLowerCase() === dc.name.toLowerCase())) {
+        mergedCats.push(dc)
+      }
+    })
+    categories = mergedCats
+    setItem(STORAGE_KEYS.CATEGORIES, categories)
   }
+
+  // If products is null/empty, seed with full catalog
+  if (!products || products.length === 0) {
+    products = DEFAULT_PRODUCTS.filter(p => !deletedIds.includes(String(p.id)))
+    setItem(STORAGE_KEYS.PRODUCTS, products)
+    setItem('billeasy_catalog_migrated_v2', true)
+  } else if (!isMigrated) {
+    // One-time catalog migration to ensure all 14 categories and 106 items are present
+    let hasAdditions = false
+    DEFAULT_PRODUCTS.forEach(dp => {
+      if (deletedIds.includes(String(dp.id))) return
+      const exists = products.some(p => (p.name || '').trim().toLowerCase() === dp.name.trim().toLowerCase())
+      if (!exists) {
+        products.push(dp)
+        hasAdditions = true
+      }
+    })
+    if (hasAdditions) {
+      setItem(STORAGE_KEYS.PRODUCTS, products)
+    }
+    setItem('billeasy_catalog_migrated_v2', true)
+  }
+
   return products
 }
 
@@ -726,6 +851,8 @@ export async function handleMockCommand(command, args = {}) {
   }
 
   if (command === 'seed_default_menu') {
+    setItem('billeasy_deleted_product_ids', [])
+    setItem('billeasy_catalog_migrated_v2', true)
     setItem(STORAGE_KEYS.CATEGORIES, DEFAULT_CATEGORIES)
     setItem(STORAGE_KEYS.PRODUCTS, DEFAULT_PRODUCTS)
     setItem(STORAGE_KEYS.ITEMS, [])
@@ -837,7 +964,8 @@ export async function handleMockCommand(command, args = {}) {
 
   if (command === 'update_product') {
     const products = getUnifiedProducts()
-    const i = products.findIndex(p => p.id === Number(args.id))
+    const targetId = String(args.id)
+    const i = products.findIndex(p => String(p.id) === targetId)
     if (i !== -1) {
       const cur = products[i]
       const catName = args.category !== undefined ? (String(args.category).trim() || 'General') : cur.category
@@ -845,7 +973,7 @@ export async function handleMockCommand(command, args = {}) {
 
       const track = args.track_inventory !== undefined
         ? Boolean(args.track_inventory)
-        : (args.current_stock != null ? Number(args.current_stock) >= 0 : (cur.track_inventory ?? true))
+        : (args.current_stock != null ? Number(args.current_stock) >= 0 : (cur.track_inventory ?? false))
 
       let stock = cur.current_stock
       if (args.current_stock !== undefined) {
@@ -867,13 +995,16 @@ export async function handleMockCommand(command, args = {}) {
       products[i] = {
         ...cur,
         ...args,
+        name: args.name ? String(args.name).trim() : cur.name,
         category: catName,
         track_inventory: track,
         current_stock: stock,
         min_stock: minStock,
         status,
-        purchase_price: args.purchase_price !== undefined ? Number(args.purchase_price) : cur.purchase_price,
-        selling_price: args.selling_price !== undefined ? Number(args.selling_price) : cur.selling_price,
+        purchase_price: args.purchase_price !== undefined ? (Number(args.purchase_price) || 0) : cur.purchase_price,
+        selling_price: args.selling_price !== undefined ? (Number(args.selling_price) || 0) : cur.selling_price,
+        barcode: args.barcode !== undefined ? String(args.barcode).trim() : (cur.barcode || ''),
+        sku: args.sku !== undefined ? String(args.sku).trim() : (cur.sku || ''),
         updated_at: new Date().toISOString(),
       }
       setItem(STORAGE_KEYS.PRODUCTS, products)
@@ -884,13 +1015,21 @@ export async function handleMockCommand(command, args = {}) {
 
   if (command === 'delete_product') {
     const products = getUnifiedProducts()
-    setItem(STORAGE_KEYS.PRODUCTS, products.filter(p => p.id !== Number(args.id)))
-    return null
+    const targetId = String(args.id)
+    const deletedIds = getItem('billeasy_deleted_product_ids', [])
+    if (!deletedIds.includes(targetId)) {
+      deletedIds.push(targetId)
+      setItem('billeasy_deleted_product_ids', deletedIds)
+    }
+    const remaining = products.filter(p => String(p.id) !== targetId)
+    setItem(STORAGE_KEYS.PRODUCTS, remaining)
+    return { success: true }
   }
 
   if (command === 'toggle_product') {
     const products = getUnifiedProducts()
-    const i = products.findIndex(p => p.id === Number(args.id))
+    const targetId = String(args.id)
+    const i = products.findIndex(p => String(p.id) === targetId)
     if (i !== -1) {
       const nextDisabled = !args.enabled
       if (nextDisabled) {
@@ -902,6 +1041,7 @@ export async function handleMockCommand(command, args = {}) {
         else products[i].status = 'active'
       }
       setItem(STORAGE_KEYS.PRODUCTS, products)
+      return products[i]
     }
     return null
   }
@@ -914,11 +1054,13 @@ export async function handleMockCommand(command, args = {}) {
 
   if (command === 'assign_barcode') {
     const products = getUnifiedProducts()
-    const i = products.findIndex(p => p.id === Number(args.id))
+    const targetId = String(args.id)
+    const i = products.findIndex(p => String(p.id) === targetId)
     if (i !== -1) {
       products[i].barcode = String(args.barcode || '').trim()
       products[i].updated_at = new Date().toISOString()
       setItem(STORAGE_KEYS.PRODUCTS, products)
+      return products[i]
     }
     return null
   }
@@ -926,7 +1068,8 @@ export async function handleMockCommand(command, args = {}) {
   // ── Stock Adjustments ──
   if (command === 'add_stock' || command === 'reduce_stock') {
     const products = getUnifiedProducts()
-    const i = products.findIndex(p => p.id === Number(args.id))
+    const targetId = String(args.id)
+    const i = products.findIndex(p => String(p.id) === targetId)
     if (i !== -1) {
       const prod = products[i]
       const delta = command === 'add_stock' ? Math.abs(Number(args.qty) || 0) : -Math.abs(Number(args.qty) || 0)
@@ -987,14 +1130,19 @@ export async function handleMockCommand(command, args = {}) {
     let changed = false
 
     for (const item of (args.items || [])) {
-      const pIdx = products.findIndex(p => p.id === Number(item.product_id) || p.barcode === item.barcode)
+      const pIdx = products.findIndex(p =>
+        String(p.id) === String(item.product_id || item.item_id || item.id) ||
+        (item.barcode && p.barcode === item.barcode) ||
+        (p.name || '').toLowerCase() === (item.name || '').toLowerCase()
+      )
       if (pIdx !== -1) {
         const prod = products[pIdx]
         const isTracked = prod.track_inventory === true
-        if (isTracked && prod.current_stock > 0) {
-          const prev = prod.current_stock
-          const deductQty = item.qty || 1
-          const nextStock = Math.max(0, prev - deductQty)
+        const deductQty = Number(item.qty) || 1
+        const prev = prod.current_stock
+
+        if (isTracked) {
+          const nextStock = Math.max(0, (prev >= 0 ? prev : 0) - deductQty)
           prod.current_stock = nextStock
           if (nextStock === 0) prod.status = 'out_of_stock'
           else if (nextStock <= (prod.min_stock || 5)) prod.status = 'low_stock'
@@ -1014,6 +1162,23 @@ export async function handleMockCommand(command, args = {}) {
             remarks: `Bill sale #${args.invoiceNumber || ''}`,
             created_at: new Date().toISOString(),
           })
+        } else {
+          // Untracked sale record
+          history.unshift({
+            id: Date.now() + Math.random(),
+            product_id: prod.id,
+            product_name: prod.name,
+            barcode: prod.barcode || '',
+            previous_stock: -1,
+            qty_changed: -deductQty,
+            current_stock: -1,
+            action: 'sale',
+            invoice_number: String(args.invoiceNumber || ''),
+            user_name: 'Cashier',
+            remarks: `Bill sale #${args.invoiceNumber || ''}`,
+            created_at: new Date().toISOString(),
+          })
+          changed = true
         }
       }
     }
@@ -1039,24 +1204,25 @@ export async function handleMockCommand(command, args = {}) {
     orders.unshift(newOrder)
     setItem(STORAGE_KEYS.ORDERS, orders)
 
-    // Auto-deduct inventory for tracked products
+    // Auto-record sale in inventory history and deduct tracked products
     try {
       const products = getUnifiedProducts()
       const history = getItem(STORAGE_KEYS.INVENTORY_HISTORY, [])
       let changed = false
       for (const item of (args.items || [])) {
         const pIdx = products.findIndex(p =>
-          p.id === Number(item.item_id) ||
-          p.id === Number(item.product_id) ||
+          String(p.id) === String(item.product_id || item.item_id || item.id) ||
+          (item.barcode && p.barcode === item.barcode) ||
           (p.name || '').toLowerCase() === (item.name || '').toLowerCase()
         )
         if (pIdx !== -1) {
           const prod = products[pIdx]
           const isTracked = prod.track_inventory === true
-          if (isTracked && prod.current_stock > 0) {
-            const prev = prod.current_stock
-            const deductQty = item.qty || 1
-            const nextStock = Math.max(0, prev - deductQty)
+          const deductQty = Number(item.qty) || 1
+          const prev = prod.current_stock
+
+          if (isTracked) {
+            const nextStock = Math.max(0, (prev >= 0 ? prev : 0) - deductQty)
             prod.current_stock = nextStock
             if (nextStock === 0) prod.status = 'out_of_stock'
             else if (nextStock <= (prod.min_stock || 5)) prod.status = 'low_stock'
@@ -1076,6 +1242,22 @@ export async function handleMockCommand(command, args = {}) {
               remarks: `Sold in Bill #${orderId}`,
               created_at: new Date().toISOString(),
             })
+          } else {
+            history.unshift({
+              id: Date.now() + Math.random(),
+              product_id: prod.id,
+              product_name: prod.name,
+              barcode: prod.barcode || '',
+              previous_stock: -1,
+              qty_changed: -deductQty,
+              current_stock: -1,
+              action: 'sale',
+              invoice_number: String(orderId),
+              user_name: 'Cashier',
+              remarks: `Sold in Bill #${orderId}`,
+              created_at: new Date().toISOString(),
+            })
+            changed = true
           }
         }
       }
@@ -1089,12 +1271,18 @@ export async function handleMockCommand(command, args = {}) {
   }
 
   if (command === 'get_orders') {
-    const orders = getItem(STORAGE_KEYS.ORDERS, [])
+    const rawOrders = getItem(STORAGE_KEYS.ORDERS, [])
+    const orders = rawOrders.map(o => ({
+      ...o,
+      items: Array.isArray(o.items)
+        ? o.items
+        : (typeof o.items === 'string' ? (() => { try { return JSON.parse(o.items) } catch { return [] } })() : [])
+    }))
     if (args.date) {
       return orders.filter(o => {
         if (!o.created_at) return false
         const localD = getLocalDateStr(new Date(o.created_at))
-        return localD === args.date || o.created_at.startsWith(args.date)
+        return localD === args.date || String(o.created_at).startsWith(args.date)
       })
     }
     return orders

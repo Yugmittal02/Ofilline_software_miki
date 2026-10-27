@@ -69,6 +69,18 @@ pub fn init(app_data_dir: &str) -> Result<()> {
     // Seed default menu on first install (only if no categories exist)
     seed_default_menu(&conn);
 
+    // If products table is empty but items exist, populate products from items
+    let prod_count: i64 = conn.query_row("SELECT COUNT(*) FROM products", [], |r| r.get(0)).unwrap_or(0);
+    if prod_count == 0 {
+        let _ = conn.execute_batch(
+            "INSERT OR IGNORE INTO products (name, barcode, sku, category, purchase_price, selling_price, current_stock, min_stock, status, item_id, barcode_type)
+             SELECT i.name, COALESCE(i.barcode, ''), 'SKU-' || i.id, COALESCE(c.name, 'General'), 0.0, i.price, -1, 0, 'active', i.id, 'internal'
+             FROM items i
+             LEFT JOIN categories c ON i.category_id = c.id
+             WHERE i.is_active = 1;"
+        );
+    }
+
     // Store persistent dir for CSV export
     let _ = DATA_DIR.set(persistent_dir);
 
@@ -258,10 +270,19 @@ fn seed_default_menu(conn: &Connection) {
         let cat_id = conn.last_insert_rowid();
 
         for (isort, (item_name, price)) in items.iter().enumerate() {
-            let _ = conn.execute(
+            let r_item = conn.execute(
                 "INSERT INTO items (category_id, name, price, is_active, sort_order) VALUES (?1, ?2, ?3, 1, ?4)",
                 rusqlite::params![cat_id, item_name, price, isort as i64],
             );
+            if r_item.is_ok() {
+                let item_id = conn.last_insert_rowid();
+                let sku = format!("SKU-{:04}", item_id);
+                let _ = conn.execute(
+                    "INSERT OR IGNORE INTO products (name, barcode, sku, category, purchase_price, selling_price, current_stock, min_stock, status, item_id, barcode_type)
+                     VALUES (?1, '', ?2, ?3, 0.0, ?4, -1, 0, 'active', ?5, 'internal')",
+                    rusqlite::params![item_name, sku, cat_name, price, item_id],
+                );
+            }
         }
     }
 }
