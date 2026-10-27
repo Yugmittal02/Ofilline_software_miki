@@ -7,7 +7,9 @@ export const useCartStore = create((set, get) => ({
 
   increment: (item) => {
     const s = get()
-    const isTracked = item.track_inventory === true
+    const isTracked = item.track_inventory !== undefined 
+      ? Boolean(item.track_inventory) 
+      : (item.current_stock != null && item.current_stock >= 0)
     const currentQty = s.quantities[item.id] ?? 0
 
     // Only limit quantity if item stock is actively tracked
@@ -38,7 +40,9 @@ export const useCartStore = create((set, get) => ({
       const product = await call('lookup_barcode', { barcode })
       if (!product) return { ok: false, error: 'unknown', barcode }
 
-      const isTracked = product.track_inventory === true
+      const isTracked = product.track_inventory !== undefined 
+        ? Boolean(product.track_inventory) 
+        : (product.current_stock != null && product.current_stock >= 0)
 
       // Stock validation (tracked items only)
       if (isTracked && (product.current_stock ?? 0) <= 0) {

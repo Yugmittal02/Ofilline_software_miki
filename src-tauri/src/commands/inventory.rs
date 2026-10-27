@@ -9,6 +9,7 @@ fn db() -> Result<std::sync::MutexGuard<'static, rusqlite::Connection>, String> 
 }
 
 fn parse_product(row: &rusqlite::Row) -> rusqlite::Result<Product> {
+    let current_stock: i64 = row.get(7)?;
     Ok(Product {
         id: row.get(0)?,
         name: row.get(1)?,
@@ -17,11 +18,12 @@ fn parse_product(row: &rusqlite::Row) -> rusqlite::Result<Product> {
         category: row.get(4)?,
         purchase_price: row.get(5)?,
         selling_price: row.get(6)?,
-        current_stock: row.get(7)?,
+        current_stock,
         min_stock: row.get(8)?,
         status: row.get(9)?,
         item_id: row.get(10)?,
         barcode_type: row.get(11)?,
+        track_inventory: current_stock >= 0,
         created_at: row.get(12)?,
         updated_at: row.get(13)?,
     })
@@ -93,6 +95,8 @@ pub fn create_product(
     currentStock: Option<i64>,
     min_stock: Option<i64>,
     minStock: Option<i64>,
+    track_inventory: Option<bool>,
+    trackInventory: Option<bool>,
     barcode_type: Option<String>,
     barcodeType: Option<String>,
     item_id: Option<i64>,
@@ -105,10 +109,16 @@ pub fn create_product(
     let cat_val = category.unwrap_or_default();
     let p_price = purchase_price.or(purchasePrice).unwrap_or(0.0);
     let s_price = selling_price.or(sellingPrice).unwrap_or(0.0);
-    let stock = current_stock.or(currentStock).unwrap_or(0);
     let min_stk = min_stock.or(minStock).unwrap_or(0);
     let b_type = barcode_type.or(barcodeType).unwrap_or_else(|| "internal".to_string());
-    let item_id_val = item_id.or(itemId);
+    let mut item_id_val = item_id.or(itemId);
+
+    let is_tracked = track_inventory.or(trackInventory);
+    let stock = match is_tracked {
+        Some(false) => -1,
+        Some(true) => current_stock.or(currentStock).unwrap_or(0).max(0),
+        None => current_stock.or(currentStock).unwrap_or(-1),
+    };
 
     // Generate barcode if empty (internal type)
     let final_barcode = if barcode_val.trim().is_empty() {
@@ -131,8 +141,39 @@ pub fn create_product(
     ).unwrap_or(false);
     if exists { return Err(format!("Barcode '{}' already exists", final_barcode)); }
 
+    // Ensure category exists in categories table
+    let category_clean = cat_val.trim();
+    let cat_id: i64 = if !category_clean.is_empty() {
+        match db.query_row(
+            "SELECT id FROM categories WHERE LOWER(TRIM(name)) = LOWER(TRIM(?1)) LIMIT 1",
+            rusqlite::params![category_clean],
+            |r| r.get(0),
+        ) {
+            Ok(id) => id,
+            Err(_) => {
+                let _ = db.execute(
+                    "INSERT INTO categories (name, sort_order, is_active) VALUES (?1, 0, 1)",
+                    rusqlite::params![category_clean],
+                );
+                db.last_insert_rowid()
+            }
+        }
+    } else {
+        1
+    };
+
+    // Ensure item exists in items table so Billing POS displays it immediately
+    if item_id_val.is_none() {
+        let _ = db.execute(
+            "INSERT INTO items (category_id, name, price, is_active, sort_order, barcode, sku, current_stock, min_stock) VALUES (?1, ?2, ?3, 1, 0, ?4, ?5, ?6, ?7)",
+            rusqlite::params![cat_id, name.trim(), s_price, final_barcode, final_sku, stock, min_stk],
+        );
+        item_id_val = Some(db.last_insert_rowid());
+    }
+
     // Determine initial status
-    let status = if stock == 0 { "out_of_stock" }
+    let status = if stock < 0 { "active" }
+        else if stock == 0 { "out_of_stock" }
         else if stock <= min_stk { "low_stock" }
         else { "active" };
 
@@ -166,6 +207,8 @@ pub fn update_product(
     currentStock: Option<i64>,
     min_stock: Option<i64>,
     minStock: Option<i64>,
+    track_inventory: Option<bool>,
+    trackInventory: Option<bool>,
     item_id: Option<i64>,
     itemId: Option<i64>,
 ) -> Result<Product, String> {
@@ -177,8 +220,14 @@ pub fn update_product(
     let p_price = purchase_price.or(purchasePrice).unwrap_or(0.0);
     let s_price = selling_price.or(sellingPrice).unwrap_or(0.0);
     let min_stk = min_stock.or(minStock).unwrap_or(0);
-    let item_id_val = item_id.or(itemId);
-    let stock_val = current_stock.or(currentStock);
+    let mut item_id_val = item_id.or(itemId);
+
+    let is_tracked = track_inventory.or(trackInventory);
+    let stock_val: Option<i64> = match is_tracked {
+        Some(false) => Some(-1),
+        Some(true) => Some(current_stock.or(currentStock).unwrap_or(10).max(0)),
+        None => current_stock.or(currentStock),
+    };
 
     // Check barcode uniqueness (excluding self)
     let exists: bool = db.query_row(
@@ -201,12 +250,45 @@ pub fn update_product(
         ).map_err(|e| e.to_string())?;
     }
 
-    // Keep items table synchronized if item_id exists
+    // Keep items table synchronized with updated price, category, name, stock
+    let category_clean = cat_val.trim();
+    let cat_id: Option<i64> = if !category_clean.is_empty() {
+        db.query_row(
+            "SELECT id FROM categories WHERE LOWER(TRIM(name)) = LOWER(TRIM(?1)) LIMIT 1",
+            rusqlite::params![category_clean],
+            |r| r.get(0),
+        ).ok()
+    } else {
+        None
+    };
+
     if let Some(iid) = item_id_val {
-        let _ = db.execute(
-            "UPDATE items SET name=?1, price=?2 WHERE id=?3",
-            rusqlite::params![name.trim(), s_price, iid],
-        );
+        if let Some(cid) = cat_id {
+            let _ = db.execute(
+                "UPDATE items SET name=?1, price=?2, category_id=?3 WHERE id=?4",
+                rusqlite::params![name.trim(), s_price, cid, iid],
+            );
+        } else {
+            let _ = db.execute(
+                "UPDATE items SET name=?1, price=?2 WHERE id=?3",
+                rusqlite::params![name.trim(), s_price, iid],
+            );
+        }
+    } else {
+        // Link to matching item in items table if exists
+        let existing_iid: Option<i64> = db.query_row(
+            "SELECT id FROM items WHERE LOWER(TRIM(name)) = LOWER(TRIM(?1)) LIMIT 1",
+            rusqlite::params![name.trim()],
+            |r| r.get(0),
+        ).ok();
+        if let Some(iid) = existing_iid {
+            let _ = db.execute("UPDATE products SET item_id=?1 WHERE id=?2", rusqlite::params![iid, id]);
+            if let Some(cid) = cat_id {
+                let _ = db.execute("UPDATE items SET price=?1, category_id=?2 WHERE id=?3", rusqlite::params![s_price, cid, iid]);
+            } else {
+                let _ = db.execute("UPDATE items SET price=?1 WHERE id=?2", rusqlite::params![s_price, iid]);
+            }
+        }
     }
 
     // Recalculate status
@@ -227,10 +309,11 @@ pub fn delete_product(id: i64) -> Result<(), String> {
     // Clear foreign key records from inventory_history before deleting product
     let _ = db.execute("DELETE FROM inventory_history WHERE product_id = ?1", rusqlite::params![id]);
 
-    // Also delete from items if linked
+    // Also delete from items if linked or matching name
     if let Some(iid) = product.item_id {
         let _ = db.execute("DELETE FROM items WHERE id = ?1", rusqlite::params![iid]);
     }
+    let _ = db.execute("DELETE FROM items WHERE LOWER(TRIM(name)) = LOWER(TRIM(?1))", rusqlite::params![product.name.trim()]);
 
     db.execute("DELETE FROM products WHERE id = ?1", rusqlite::params![id]).map_err(|e| e.to_string())?;
     Ok(())

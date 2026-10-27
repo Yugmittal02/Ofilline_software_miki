@@ -81,40 +81,50 @@ pub fn delete_category(id: i64) -> Result<(), String> {
 pub fn get_items(category_id: Option<i64>) -> Result<Vec<Item>, String> {
     let db = db()?;
 
-    let parse_item = |row: &rusqlite::Row| -> rusqlite::Result<Item> {
+    let sql = "SELECT 
+        i.id, 
+        i.category_id, 
+        i.name, 
+        i.price, 
+        i.is_active, 
+        i.sort_order, 
+        COALESCE(i.image_url, '') as image_url,
+        COALESCE(p.barcode, i.barcode, '') as barcode,
+        COALESCE(p.sku, i.sku, '') as sku,
+        COALESCE(p.current_stock, -1) as current_stock,
+        COALESCE(p.min_stock, 0) as min_stock,
+        p.id as product_id
+    FROM items i
+    LEFT JOIN products p ON i.id = p.item_id OR LOWER(TRIM(i.name)) = LOWER(TRIM(p.name))
+    WHERE (?1 IS NULL OR i.category_id = ?1) AND i.is_active = 1
+    ORDER BY i.sort_order, i.id";
+
+    let mut stmt = db.prepare(sql).map_err(|e| e.to_string())?;
+    let rows = stmt.query_map(rusqlite::params![category_id], |row| {
+        let current_stock: i64 = row.get(9)?;
+        let prod_id: Option<i64> = row.get(11)?;
+        let item_id: i64 = row.get(0)?;
         Ok(Item {
-            id: row.get(0)?,
+            id: item_id,
             category_id: row.get(1)?,
             name: row.get(2)?,
             price: row.get(3)?,
             is_active: row.get::<_, i64>(4)? == 1,
             sort_order: row.get(5)?,
-            image_url: row.get::<_, String>(6).unwrap_or_default(),
+            image_url: row.get(6)?,
+            barcode: row.get(7)?,
+            sku: row.get(8)?,
+            track_inventory: current_stock >= 0,
+            current_stock,
+            min_stock: row.get(10)?,
+            product_id: prod_id.or(Some(item_id)),
         })
-    };
+    }).map_err(|e| e.to_string())?;
 
     let mut items = Vec::new();
-
-    if let Some(cid) = category_id {
-        let mut stmt = db.prepare(
-            "SELECT id, category_id, name, price, is_active, sort_order, image_url FROM items WHERE category_id=?1 ORDER BY sort_order, id"
-        ).map_err(|e| e.to_string())?;
-        let rows = stmt.query_map(rusqlite::params![cid], parse_item)
-            .map_err(|e| e.to_string())?;
-        for item in rows {
-            items.push(item.map_err(|e| e.to_string())?);
-        }
-    } else {
-        let mut stmt = db.prepare(
-            "SELECT id, category_id, name, price, is_active, sort_order, image_url FROM items ORDER BY sort_order, id"
-        ).map_err(|e| e.to_string())?;
-        let rows = stmt.query_map([], parse_item)
-            .map_err(|e| e.to_string())?;
-        for item in rows {
-            items.push(item.map_err(|e| e.to_string())?);
-        }
+    for item in rows {
+        items.push(item.map_err(|e| e.to_string())?);
     }
-
     Ok(items)
 }
 
@@ -124,19 +134,42 @@ pub fn create_item(category_id: i64, name: String, price: f64, image_url: Option
     let img = image_url.unwrap_or_default();
     db.execute(
         "INSERT INTO items (category_id, name, price, is_active, sort_order, image_url) VALUES (?1, ?2, ?3, 1, 0, ?4)",
-        rusqlite::params![category_id, name, price, img],
-    )
-    .map_err(|e| e.to_string())?;
+        rusqlite::params![category_id, name.trim(), price, img],
+    ).map_err(|e| e.to_string())?;
 
     let id = db.last_insert_rowid();
+
+    // Get category name
+    let cat_name: String = db.query_row(
+        "SELECT name FROM categories WHERE id = ?1",
+        rusqlite::params![category_id], |r| r.get(0)
+    ).unwrap_or_else(|_| "General".to_string());
+
+    let sku = format!("SKU-{:04}", id);
+    let barcode = format!("1{:04}", id);
+
+    let _ = db.execute(
+        "INSERT OR IGNORE INTO products (name, barcode, sku, category, purchase_price, selling_price, current_stock, min_stock, status, item_id, barcode_type)
+         VALUES (?1, ?2, ?3, ?4, 0.0, ?5, -1, 0, 'active', ?6, 'internal')",
+        rusqlite::params![name.trim(), barcode, sku, cat_name, price, id],
+    );
+
+    let prod_id = db.last_insert_rowid();
+
     Ok(Item {
         id,
         category_id,
-        name,
+        name: name.trim().to_string(),
         price,
         is_active: true,
         sort_order: 0,
         image_url: img,
+        barcode,
+        sku,
+        track_inventory: false,
+        current_stock: -1,
+        min_stock: 0,
+        product_id: Some(prod_id),
     })
 }
 
@@ -145,9 +178,14 @@ pub fn update_item(id: i64, name: String, price: f64, is_active: bool) -> Result
     let db = db()?;
     db.execute(
         "UPDATE items SET name=?1, price=?2, is_active=?3 WHERE id=?4",
-        rusqlite::params![name, price, is_active as i64, id],
-    )
-    .map_err(|e| e.to_string())?;
+        rusqlite::params![name.trim(), price, is_active as i64, id],
+    ).map_err(|e| e.to_string())?;
+
+    let status = if is_active { "active" } else { "disabled" };
+    let _ = db.execute(
+        "UPDATE products SET name=?1, selling_price=?2, status=?3, updated_at=CURRENT_TIMESTAMP WHERE item_id=?4 OR LOWER(TRIM(name))=LOWER(TRIM(?1))",
+        rusqlite::params![name.trim(), price, status, id],
+    );
     Ok(())
 }
 
@@ -157,20 +195,24 @@ pub fn update_item_image(id: i64, image_url: String) -> Result<(), String> {
     db.execute(
         "UPDATE items SET image_url=?1 WHERE id=?2",
         rusqlite::params![image_url, id],
-    )
-    .map_err(|e| e.to_string())?;
+    ).map_err(|e| e.to_string())?;
     Ok(())
 }
 
 #[tauri::command]
 pub fn delete_item(id: i64) -> Result<(), String> {
     let db = db()?;
-    // Soft delete
-    db.execute(
-        "UPDATE items SET is_active=0 WHERE id=?1",
-        rusqlite::params![id],
-    )
-    .map_err(|e| e.to_string())?;
+    let item_name: Option<String> = db.query_row(
+        "SELECT name FROM items WHERE id = ?1",
+        rusqlite::params![id], |r| r.get(0)
+    ).ok();
+
+    db.execute("DELETE FROM items WHERE id=?1", rusqlite::params![id]).map_err(|e| e.to_string())?;
+
+    if let Some(name) = item_name {
+        let _ = db.execute("DELETE FROM inventory_history WHERE product_id IN (SELECT id FROM products WHERE item_id=?1 OR LOWER(TRIM(name))=LOWER(TRIM(?2)))", rusqlite::params![id, name]);
+        let _ = db.execute("DELETE FROM products WHERE item_id=?1 OR LOWER(TRIM(name))=LOWER(TRIM(?2))", rusqlite::params![id, name]);
+    }
     Ok(())
 }
 

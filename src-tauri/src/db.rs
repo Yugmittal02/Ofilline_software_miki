@@ -90,15 +90,7 @@ pub fn init(app_data_dir: &str) -> Result<()> {
     Ok(())
 }
 
-/// Seed the default menu on first install. Only runs if categories table is empty.
-/// All items are fully editable by the user through the Setup page.
 fn seed_default_menu(conn: &Connection) {
-    let count: i64 = conn
-        .query_row("SELECT COUNT(*) FROM categories", [], |r| r.get(0))
-        .unwrap_or(0);
-    if count > 0 {
-        return; // Already has data — don't overwrite
-    }
 
     let menu: &[(&str, &[(&str, f64)])] = &[
         ("Chinese", &[
@@ -262,25 +254,50 @@ fn seed_default_menu(conn: &Connection) {
     ];
 
     for (sort, (cat_name, items)) in menu.iter().enumerate() {
-        let r = conn.execute(
-            "INSERT INTO categories (name, sort_order, is_active) VALUES (?1, ?2, 1)",
-            rusqlite::params![cat_name, sort as i64],
-        );
-        if r.is_err() { continue; }
-        let cat_id = conn.last_insert_rowid();
+        let cat_id: i64 = match conn.query_row(
+            "SELECT id FROM categories WHERE LOWER(TRIM(name)) = LOWER(TRIM(?1)) LIMIT 1",
+            rusqlite::params![cat_name],
+            |r| r.get(0),
+        ) {
+            Ok(id) => id,
+            Err(_) => {
+                let _ = conn.execute(
+                    "INSERT INTO categories (name, sort_order, is_active) VALUES (?1, ?2, 1)",
+                    rusqlite::params![cat_name, sort as i64],
+                );
+                conn.last_insert_rowid()
+            }
+        };
 
         for (isort, (item_name, price)) in items.iter().enumerate() {
-            let r_item = conn.execute(
-                "INSERT INTO items (category_id, name, price, is_active, sort_order) VALUES (?1, ?2, ?3, 1, ?4)",
-                rusqlite::params![cat_id, item_name, price, isort as i64],
-            );
-            if r_item.is_ok() {
-                let item_id = conn.last_insert_rowid();
+            let item_id: i64 = match conn.query_row(
+                "SELECT id FROM items WHERE LOWER(TRIM(name)) = LOWER(TRIM(?1)) LIMIT 1",
+                rusqlite::params![item_name],
+                |r| r.get(0),
+            ) {
+                Ok(id) => id,
+                Err(_) => {
+                    let _ = conn.execute(
+                        "INSERT INTO items (category_id, name, price, is_active, sort_order) VALUES (?1, ?2, ?3, 1, ?4)",
+                        rusqlite::params![cat_id, item_name, price, isort as i64],
+                    );
+                    conn.last_insert_rowid()
+                }
+            };
+
+            let prod_exists: bool = conn.query_row(
+                "SELECT COUNT(*) > 0 FROM products WHERE LOWER(TRIM(name)) = LOWER(TRIM(?1))",
+                rusqlite::params![item_name],
+                |r| r.get(0),
+            ).unwrap_or(false);
+
+            if !prod_exists {
                 let sku = format!("SKU-{:04}", item_id);
+                let barcode = format!("1{:04}", item_id);
                 let _ = conn.execute(
                     "INSERT OR IGNORE INTO products (name, barcode, sku, category, purchase_price, selling_price, current_stock, min_stock, status, item_id, barcode_type)
-                     VALUES (?1, '', ?2, ?3, 0.0, ?4, -1, 0, 'active', ?5, 'internal')",
-                    rusqlite::params![item_name, sku, cat_name, price, item_id],
+                     VALUES (?1, ?2, ?3, ?4, 0.0, ?5, -1, 0, 'active', ?6, 'internal')",
+                    rusqlite::params![item_name, barcode, sku, cat_name, price, item_id],
                 );
             }
         }

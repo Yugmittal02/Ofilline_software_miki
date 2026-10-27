@@ -47,12 +47,18 @@ export const useInventoryStore = create((set, get) => ({
     set({ loading: true })
     try {
       const { searchQuery, filterCategory, filterStatus } = get()
-      const products = await call('get_products', {
+      const rawProducts = await call('get_products', {
         search: searchQuery || null,
         category: filterCategory || null,
         status: filterStatus || null,
       })
-      set({ products: products || [], loading: false })
+      const products = (rawProducts || []).map(p => ({
+        ...p,
+        track_inventory: p.track_inventory !== undefined 
+          ? Boolean(p.track_inventory) 
+          : (Number(p.current_stock) >= 0),
+      }))
+      set({ products, loading: false })
     } catch (e) {
       console.error('fetchProducts:', e)
       set({ loading: false })

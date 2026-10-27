@@ -377,7 +377,9 @@ export default function Inventory() {
                   </td>
                 </tr>
               ) : products.map(p => {
-                const isTracked = p.track_inventory === true
+                const isTracked = p.track_inventory !== undefined 
+                  ? Boolean(p.track_inventory) 
+                  : (p.current_stock != null && Number(p.current_stock) >= 0)
                 return (
                   <tr
                     key={p.id}
@@ -892,7 +894,9 @@ function ProductModal({ product, categories, onSave, onClose }) {
     sku: product?.sku || '',
     selling_price: product?.selling_price || '',
     purchase_price: product?.purchase_price || '',
-    track_inventory: product?.track_inventory !== undefined ? Boolean(product.track_inventory) : false,
+    track_inventory: product?.track_inventory !== undefined 
+      ? Boolean(product.track_inventory) 
+      : (product?.current_stock != null && Number(product.current_stock) >= 0),
     current_stock: product?.current_stock >= 0 ? product.current_stock : 10,
     min_stock: product?.min_stock || 5,
     barcode_type: product?.barcode_type || 'internal',
@@ -1112,6 +1116,8 @@ function ProductModal({ product, categories, onSave, onClose }) {
                 ...form,
                 selling_price: parseFloat(form.selling_price) || 0,
                 purchase_price: parseFloat(form.purchase_price) || 0,
+                current_stock: form.track_inventory ? (parseInt(form.current_stock) >= 0 ? parseInt(form.current_stock) : 10) : -1,
+                track_inventory: Boolean(form.track_inventory),
               })
             }}
             disabled={!form.name.trim() || form.selling_price === '' || isNaN(parseFloat(form.selling_price))}

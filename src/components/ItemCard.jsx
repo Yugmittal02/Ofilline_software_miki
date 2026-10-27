@@ -7,7 +7,9 @@ export default function ItemCard({ item }) {
   const decrement = useCartStore(s => s.decrement)
   const getThumbnail = useCloudinaryStore(s => s.getThumbnail)
 
-  const isTracked = item.track_inventory === true
+  const isTracked = item.track_inventory !== undefined 
+    ? Boolean(item.track_inventory) 
+    : (item.current_stock != null && item.current_stock >= 0)
   const isOutOfStock = isTracked && (item.current_stock ?? 0) <= 0
   const isMaxReached = isTracked && item.current_stock > 0 && qty >= item.current_stock
   const isLowStock = isTracked && item.current_stock > 0 && item.current_stock <= (item.min_stock || 5)

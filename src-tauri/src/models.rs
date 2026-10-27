@@ -18,6 +18,18 @@ pub struct Item {
     pub sort_order: i64,
     #[serde(default)]
     pub image_url: String,
+    #[serde(default)]
+    pub barcode: String,
+    #[serde(default)]
+    pub sku: String,
+    #[serde(default)]
+    pub track_inventory: bool,
+    #[serde(default)]
+    pub current_stock: i64,
+    #[serde(default)]
+    pub min_stock: i64,
+    #[serde(default)]
+    pub product_id: Option<i64>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -72,6 +84,8 @@ pub struct Product {
     pub status: String,
     pub item_id: Option<i64>,
     pub barcode_type: String,
+    #[serde(default)]
+    pub track_inventory: bool,
     pub created_at: String,
     pub updated_at: String,
 }
