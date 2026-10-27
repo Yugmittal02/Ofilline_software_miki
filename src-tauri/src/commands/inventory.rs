@@ -370,6 +370,7 @@ pub fn lookup_barcode(barcode: String) -> Result<Option<Product>, String> {
                 status: "active".to_string(),
                 item_id: Some(item_id),
                 barcode_type: "manufacturer".to_string(),
+                track_inventory: false,
                 created_at: String::new(),
                 updated_at: String::new(),
             }))
