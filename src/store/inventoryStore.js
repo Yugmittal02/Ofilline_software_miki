@@ -1,6 +1,13 @@
 import { create } from 'zustand'
 import { call } from '../lib/tauri'
 
+// Debounce helper
+let _searchTimer = null
+function debouncedFetch(fn, delay = 300) {
+  if (_searchTimer) clearTimeout(_searchTimer)
+  _searchTimer = setTimeout(fn, delay)
+}
+
 export const useInventoryStore = create((set, get) => ({
   products: [],
   categories: [],
@@ -65,7 +72,12 @@ export const useInventoryStore = create((set, get) => ({
     }
   },
 
-  setSearchQuery: (q) => { set({ searchQuery: q }); get().fetchProducts() },
+  // Debounced search — prevents race conditions & flickering input on slow PCs
+  setSearchQuery: (q) => {
+    set({ searchQuery: q })
+    debouncedFetch(() => get().fetchProducts(), 300)
+  },
+
   setFilterCategory: (c) => { set({ filterCategory: c }); get().fetchProducts() },
   setFilterStatus: (s) => { set({ filterStatus: s }); get().fetchProducts() },
 

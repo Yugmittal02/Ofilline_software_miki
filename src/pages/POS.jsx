@@ -99,7 +99,9 @@ export default function POS() {
       const matchName = i.name.toLowerCase().includes(q)
       const cat = categories.find(c => c.id === i.category_id)
       const matchCat = cat?.name?.toLowerCase().includes(q)
-      return matchName || matchCat
+      const matchBarcode = (i.barcode || '').toLowerCase().includes(q)
+      const matchSku = (i.sku || '').toLowerCase().includes(q)
+      return matchName || matchCat || matchBarcode || matchSku
     })
 
   return (

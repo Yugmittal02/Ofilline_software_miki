@@ -751,7 +751,7 @@ export async function handleMockCommand(command, args = {}) {
     const i = cats.findIndex(c => c.id === args.id)
     if (i !== -1) {
       const oldName = cats[i].name
-      cats[i] = { ...cats[i], ...args }
+      cats[i] = { ...cats[i], name: args.name !== undefined ? String(args.name).trim() : cats[i].name, is_active: args.isActive !== undefined ? Boolean(args.isActive) : (args.is_active !== undefined ? Boolean(args.is_active) : cats[i].is_active), sort_order: args.sortOrder !== undefined ? Number(args.sortOrder) : (args.sort_order !== undefined ? Number(args.sort_order) : cats[i].sort_order) }
       setItem(STORAGE_KEYS.CATEGORIES, cats)
 
       // If category renamed, update category field on products too
@@ -994,7 +994,6 @@ export async function handleMockCommand(command, args = {}) {
 
       products[i] = {
         ...cur,
-        ...args,
         name: args.name ? String(args.name).trim() : cur.name,
         category: catName,
         track_inventory: track,
@@ -1005,6 +1004,7 @@ export async function handleMockCommand(command, args = {}) {
         selling_price: args.selling_price !== undefined ? (Number(args.selling_price) || 0) : cur.selling_price,
         barcode: args.barcode !== undefined ? String(args.barcode).trim() : (cur.barcode || ''),
         sku: args.sku !== undefined ? String(args.sku).trim() : (cur.sku || ''),
+        image_url: args.image_url !== undefined ? String(args.image_url) : (cur.image_url || ''),
         updated_at: new Date().toISOString(),
       }
       setItem(STORAGE_KEYS.PRODUCTS, products)
@@ -1049,7 +1049,7 @@ export async function handleMockCommand(command, args = {}) {
   if (command === 'lookup_barcode') {
     const products = getUnifiedProducts()
     const b = String(args.barcode || '').trim()
-    return products.find(p => p.barcode === b) || null
+    const found = products.find(p => p.barcode === b); return found ? { ...found, item_id: found.id } : null
   }
 
   if (command === 'assign_barcode') {
@@ -1204,68 +1204,7 @@ export async function handleMockCommand(command, args = {}) {
     orders.unshift(newOrder)
     setItem(STORAGE_KEYS.ORDERS, orders)
 
-    // Auto-record sale in inventory history and deduct tracked products
-    try {
-      const products = getUnifiedProducts()
-      const history = getItem(STORAGE_KEYS.INVENTORY_HISTORY, [])
-      let changed = false
-      for (const item of (args.items || [])) {
-        const pIdx = products.findIndex(p =>
-          String(p.id) === String(item.product_id || item.item_id || item.id) ||
-          (item.barcode && p.barcode === item.barcode) ||
-          (p.name || '').toLowerCase() === (item.name || '').toLowerCase()
-        )
-        if (pIdx !== -1) {
-          const prod = products[pIdx]
-          const isTracked = prod.track_inventory === true
-          const deductQty = Number(item.qty) || 1
-          const prev = prod.current_stock
-
-          if (isTracked) {
-            const nextStock = Math.max(0, (prev >= 0 ? prev : 0) - deductQty)
-            prod.current_stock = nextStock
-            if (nextStock === 0) prod.status = 'out_of_stock'
-            else if (nextStock <= (prod.min_stock || 5)) prod.status = 'low_stock'
-            changed = true
-
-            history.unshift({
-              id: Date.now() + Math.random(),
-              product_id: prod.id,
-              product_name: prod.name,
-              barcode: prod.barcode || '',
-              previous_stock: prev,
-              qty_changed: -deductQty,
-              current_stock: nextStock,
-              action: 'sale_deduct',
-              invoice_number: String(orderId),
-              user_name: 'Cashier',
-              remarks: `Sold in Bill #${orderId}`,
-              created_at: new Date().toISOString(),
-            })
-          } else {
-            history.unshift({
-              id: Date.now() + Math.random(),
-              product_id: prod.id,
-              product_name: prod.name,
-              barcode: prod.barcode || '',
-              previous_stock: -1,
-              qty_changed: -deductQty,
-              current_stock: -1,
-              action: 'sale',
-              invoice_number: String(orderId),
-              user_name: 'Cashier',
-              remarks: `Sold in Bill #${orderId}`,
-              created_at: new Date().toISOString(),
-            })
-            changed = true
-          }
-        }
-      }
-      if (changed) {
-        setItem(STORAGE_KEYS.PRODUCTS, products)
-        setItem(STORAGE_KEYS.INVENTORY_HISTORY, history)
-      }
-    } catch (e) { console.warn('[Mock] auto-deduct error:', e) }
+    // Inventory deduction is handled separately via deduct_inventory command
 
     return orderId
   }

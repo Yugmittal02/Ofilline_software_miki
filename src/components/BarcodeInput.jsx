@@ -13,7 +13,6 @@ export default function BarcodeInput({ onScan, disabled = false, placeholder = '
   const inputRef = useRef(null)
   const [value, setValue] = useState('')
   const [flash, setFlash] = useState(false)
-  const debounceRef = useRef(null)
 
   // Keep focus on the barcode input — refocus every 500ms if lost
   useEffect(() => {

@@ -49,7 +49,7 @@ export const useCartStore = create((set, get) => ({
         return { ok: false, error: 'out_of_stock', product }
       }
 
-      const cartId = product.id
+      const cartId = product.item_id || product.id
       const currentQty = get().quantities[cartId] ?? 0
 
       // Prevent adding more than available (if tracked)

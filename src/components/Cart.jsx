@@ -33,7 +33,6 @@ export default function Cart({ onPrintSuccess, onPrintError }) {
     return () => window.removeEventListener('keydown', handler)
   }, [cartItems, isPrinting, showPreview])
 
-  const deductInventory = useInventoryStore(s => s.deductInventory)
   const validateCartStock = useInventoryStore(s => s.validateCartStock)
   const isPrintingRef = useRef(false)
 
@@ -59,14 +58,24 @@ export default function Cart({ onPrintSuccess, onPrintError }) {
         subtotal, total: grandTotal,
       })
 
-      // 3. Deduct inventory atomically
+      // 3. Deduct inventory for tracked items
       try {
-        await deductInventory(invItems, String(orderId))
-      } catch (invErr) {
-        console.error('Inventory deduction error:', invErr)
+        await call('deduct_inventory', {
+          items: invItems,
+          invoiceNumber: String(orderId),
+        })
+      } catch (deductErr) {
+        console.warn('Inventory deduction warning:', deductErr)
       }
 
-      // 4. Print receipt
+      // 4. Refresh inventory data so POS shows updated stock levels
+      try {
+        await useInventoryStore.getState().fetchProducts()
+      } catch (refreshErr) {
+        console.warn('Inventory refresh after sale:', refreshErr)
+      }
+
+      // 5. Print receipt
       try {
         await call('print_receipt', {
           orderId,
@@ -100,15 +109,29 @@ export default function Cart({ onPrintSuccess, onPrintError }) {
     }))
     try {
       await validateCartStock(stockItems)
+
       const orderId = await call('save_order', {
         items: cartItems.map(i => ({ item_id: i.id, name: i.name, price: i.price, qty: i.qty })),
         subtotal, total: grandTotal,
       })
+
+      // Deduct inventory for tracked items
       try {
-        await deductInventory(stockItems, String(orderId))
-      } catch (err) {
-        console.error('Inventory deduction error:', err)
+        await call('deduct_inventory', {
+          items: stockItems,
+          invoiceNumber: String(orderId),
+        })
+      } catch (deductErr) {
+        console.warn('Inventory deduction warning:', deductErr)
       }
+
+      // Refresh inventory after sale
+      try {
+        await useInventoryStore.getState().fetchProducts()
+      } catch (refreshErr) {
+        console.warn('Inventory refresh after sale:', refreshErr)
+      }
+
       setPreviewOrderId(orderId)
       setShowPreview(true)
     } catch (e) {

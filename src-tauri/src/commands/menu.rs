@@ -95,7 +95,11 @@ pub fn get_items(category_id: Option<i64>) -> Result<Vec<Item>, String> {
         COALESCE(p.min_stock, 0) as min_stock,
         p.id as product_id
     FROM items i
-    LEFT JOIN products p ON i.id = p.item_id OR LOWER(TRIM(i.name)) = LOWER(TRIM(p.name))
+    LEFT JOIN products p ON p.id = (
+        SELECT p2.id FROM products p2
+        WHERE p2.item_id = i.id OR LOWER(TRIM(p2.name)) = LOWER(TRIM(i.name))
+        LIMIT 1
+    )
     WHERE (?1 IS NULL OR i.category_id = ?1) AND i.is_active = 1
     ORDER BY i.sort_order, i.id";
 
