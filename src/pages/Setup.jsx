@@ -4,7 +4,7 @@ import { useCloudinaryStore } from '../store/cloudinaryStore'
 import { call } from '../lib/tauri'
 
 export default function Setup() {
-  const { settings, fetchSettings, saveSettings, logoDataUri, fetchLogo, saveLogo, deleteLogo } = useSettingsStore()
+  const { settings, fetchSettings, saveSettings, logoDataUri, fetchLogo, saveLogo, deleteLogo, checkAdminPin, setAdminPin } = useSettingsStore()
   const { cloudName, uploadPreset, fetchConfig: fetchCloudinary, saveConfig: saveCloudinary } = useCloudinaryStore()
 
   const [testPrinting, setTestPrinting] = useState(false)
@@ -14,6 +14,10 @@ export default function Setup() {
   const [loadingPrinters, setLoadingPrinters] = useState(false)
   const [localCloudName, setLocalCloudName] = useState('')
   const [localUploadPreset, setLocalUploadPreset] = useState('')
+  const [currentPwd, setCurrentPwd] = useState('')
+  const [newPwd, setNewPwd] = useState('')
+  const [confirmPwd, setConfirmPwd] = useState('')
+  const [pwdChanging, setPwdChanging] = useState(false)
   const fileInputRef = useRef(null)
 
   useEffect(() => {
@@ -94,6 +98,34 @@ export default function Setup() {
   const handleDeleteLogo = async () => {
     try { await deleteLogo(); showToast('Logo removed') }
     catch (e) { showToast(typeof e === 'string' ? e : 'Failed to remove logo', 'error') }
+  }
+
+  const handleChangePassword = async () => {
+    if (!currentPwd || !newPwd || !confirmPwd) {
+      showToast('Please fill all fields', 'error'); return
+    }
+    if (newPwd.length !== 6 || !/^\d{6}$/.test(newPwd)) {
+      showToast('New password must be exactly 6 digits', 'error'); return
+    }
+    if (newPwd !== confirmPwd) {
+      showToast('New passwords do not match', 'error'); return
+    }
+    setPwdChanging(true)
+    try {
+      const valid = await checkAdminPin(currentPwd)
+      if (!valid) {
+        showToast('Current password is incorrect', 'error')
+        setPwdChanging(false)
+        return
+      }
+      await setAdminPin(newPwd)
+      setCurrentPwd('')
+      setNewPwd('')
+      setConfirmPwd('')
+      showToast('Password changed successfully!')
+    } catch (e) {
+      showToast('Failed to change password', 'error')
+    } finally { setPwdChanging(false) }
   }
 
   const handleSaveCloudinary = async () => {
@@ -409,6 +441,60 @@ export default function Setup() {
               </p>
             </div>
           )}
+        </div>
+
+        {/* ═══════════════ PASSWORD SETTINGS ═══════════════ */}
+        <div>
+          <div className="settings-section-title">🔒 Password Protection</div>
+          <div className="settings-card">
+            <div className="px-4 py-2">
+              <p className="text-xs text-gray-400 mb-3">
+                History and Setup tabs are password protected. Default password: <span className="font-mono font-semibold text-gray-600">861915</span>
+              </p>
+            </div>
+            <div className="settings-row">
+              <span className="text-sm text-gray-500 w-32 flex-shrink-0">Current Password</span>
+              <input
+                type="password"
+                value={currentPwd}
+                onChange={e => setCurrentPwd(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                className="input-premium text-sm flex-1"
+                placeholder="Enter current 6-digit password"
+                maxLength={6}
+              />
+            </div>
+            <div className="settings-row">
+              <span className="text-sm text-gray-500 w-32 flex-shrink-0">New Password</span>
+              <input
+                type="password"
+                value={newPwd}
+                onChange={e => setNewPwd(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                className="input-premium text-sm flex-1"
+                placeholder="Enter new 6-digit password"
+                maxLength={6}
+              />
+            </div>
+            <div className="settings-row">
+              <span className="text-sm text-gray-500 w-32 flex-shrink-0">Confirm Password</span>
+              <input
+                type="password"
+                value={confirmPwd}
+                onChange={e => setConfirmPwd(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                className="input-premium text-sm flex-1"
+                placeholder="Re-enter new password"
+                maxLength={6}
+              />
+            </div>
+            <div className="settings-row justify-end gap-3">
+              <button
+                onClick={handleChangePassword}
+                disabled={pwdChanging || !currentPwd || !newPwd || !confirmPwd}
+                className="btn-primary text-xs py-2 px-5 disabled:opacity-50"
+              >
+                {pwdChanging ? '⏳ Changing...' : '🔑 Change Password'}
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="h-6" />

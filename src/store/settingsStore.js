@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { call } from '../lib/tauri'
 
+const DEFAULT_PIN = '861915'
+
 const DEFAULT_SETTINGS = {
   shop_name: 'My Shop',
   shop_tagline: '',
@@ -61,26 +63,30 @@ export const useSettingsStore = create((set, get) => ({
     set({ logoDataUri: null, settings: { ...DEFAULT_SETTINGS, ...settings } })
   },
 
-  // ── Admin PIN Methods ──
+  // ── Admin Password Methods ──
 
   hasAdminPin: () => {
-    return !!get().settings.admin_pin_hash
+    // Always has a password (default or custom)
+    return true
   },
 
   setAdminPin: async (pin) => {
-    // Simple hash using SubtleCrypto
     const hash = await hashPin(pin)
     await get().saveSettings({ admin_pin_hash: hash })
   },
 
   checkAdminPin: async (pin) => {
     const storedHash = get().settings.admin_pin_hash
-    if (!storedHash) return true // No PIN set = always passes
+    if (!storedHash) {
+      // No custom password set — check against default
+      return pin === DEFAULT_PIN
+    }
     const hash = await hashPin(pin)
     return hash === storedHash
   },
 
   removeAdminPin: async () => {
+    // Reset to default password by clearing the hash
     await get().saveSettings({ admin_pin_hash: '' })
   },
 }))

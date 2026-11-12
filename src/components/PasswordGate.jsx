@@ -2,36 +2,18 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSettingsStore } from '../store/settingsStore'
 
 /**
- * PasswordGate — 4-digit PIN modal with full physical keyboard support.
+ * PasswordGate — 6-digit PIN modal with full physical keyboard support.
  * Keys: 0-9 to enter, Backspace to delete, Escape to cancel.
  */
 export default function PasswordGate({ onUnlock, onCancel }) {
-  const hasAdminPin = useSettingsStore(s => s.hasAdminPin)
   const checkAdminPin = useSettingsStore(s => s.checkAdminPin)
-  const setAdminPin = useSettingsStore(s => s.setAdminPin)
 
-  const isFirstTime = !hasAdminPin()
-  const [mode, setMode] = useState(isFirstTime ? 'setup' : 'verify')
   const [pin, setPin] = useState('')
-  const [setupPin, setSetupPin] = useState('')
   const [error, setError] = useState('')
   const [shake, setShake] = useState(false)
 
-  // Use refs to avoid stale closures in keyboard handler
   const pinRef = useRef(pin)
-  const modeRef = useRef(mode)
-  const setupPinRef = useRef(setupPin)
   pinRef.current = pin
-  modeRef.current = mode
-  setupPinRef.current = setupPin
-
-  const title = mode === 'setup' ? 'Set Admin PIN'
-    : mode === 'confirm' ? 'Confirm PIN'
-    : 'Enter Admin PIN'
-
-  const subtitle = mode === 'setup' ? 'Choose a 4-digit PIN'
-    : mode === 'confirm' ? 'Re-enter to confirm'
-    : 'Enter your PIN to continue'
 
   const triggerError = useCallback((msg) => {
     setError(msg)
@@ -41,39 +23,21 @@ export default function PasswordGate({ onUnlock, onCancel }) {
   }, [])
 
   const handleSubmit = useCallback(async (fullPin) => {
-    const currentMode = modeRef.current
-    const currentSetupPin = setupPinRef.current
-
-    if (currentMode === 'setup') {
-      setSetupPin(fullPin)
-      setPin('')
-      setMode('confirm')
-    } else if (currentMode === 'confirm') {
-      if (fullPin === currentSetupPin) {
-        await setAdminPin(fullPin)
-        onUnlock?.()
-      } else {
-        triggerError('PINs did not match')
-        setMode('setup')
-        setSetupPin('')
-      }
+    const valid = await checkAdminPin(fullPin)
+    if (valid) {
+      onUnlock?.()
     } else {
-      const valid = await checkAdminPin(fullPin)
-      if (valid) {
-        onUnlock?.()
-      } else {
-        triggerError('Incorrect PIN')
-      }
+      triggerError('Incorrect Password')
     }
-  }, [checkAdminPin, setAdminPin, onUnlock, triggerError])
+  }, [checkAdminPin, onUnlock, triggerError])
 
   const handleDigit = useCallback((digit) => {
     const currentPin = pinRef.current
-    if (currentPin.length >= 4) return
+    if (currentPin.length >= 6) return
     const next = currentPin + digit
     setPin(next)
     setError('')
-    if (next.length === 4) {
+    if (next.length === 6) {
       setTimeout(() => handleSubmit(next), 150)
     }
   }, [handleSubmit])
@@ -86,7 +50,6 @@ export default function PasswordGate({ onUnlock, onCancel }) {
   // Physical keyboard listener
   useEffect(() => {
     const handler = (e) => {
-      // Prevent default to avoid typing in background inputs
       if (/^[0-9]$/.test(e.key)) {
         e.preventDefault()
         handleDigit(e.key)
@@ -114,13 +77,13 @@ export default function PasswordGate({ onUnlock, onCancel }) {
           <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg">
             <span className="text-white text-xl">🔒</span>
           </div>
-          <h2 className="font-heading text-lg font-bold text-stone-900">{title}</h2>
-          <p className="text-sm text-stone-400 mt-0.5">{subtitle}</p>
+          <h2 className="font-heading text-lg font-bold text-stone-900">Enter Password</h2>
+          <p className="text-sm text-stone-400 mt-0.5">Enter 6-digit password to continue</p>
         </div>
 
         {/* PIN dots */}
-        <div className="flex justify-center gap-4 py-3">
-          {[0, 1, 2, 3].map(i => (
+        <div className="flex justify-center gap-3 py-3">
+          {[0, 1, 2, 3, 4, 5].map(i => (
             <div key={i} className={`pin-dot ${i < pin.length ? 'filled' : ''}`} />
           ))}
         </div>

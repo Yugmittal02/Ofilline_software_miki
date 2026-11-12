@@ -17,7 +17,8 @@ export default function App() {
   const [pendingTab, setPendingTab] = useState(null)
   const [unlockedTabs, setUnlockedTabs] = useState(new Set())
   const { fetchSettings } = useSettingsStore()
-  const hasAdminPin = useSettingsStore(s => s.hasAdminPin)
+
+  const PROTECTED_TABS = ['history', 'setup']
 
   useEffect(() => {
     let cancelled = false
@@ -32,7 +33,6 @@ export default function App() {
           if (i < retries - 1) {
             await new Promise(r => setTimeout(r, 250))
           } else {
-            // After all retries, show license activation screen instead of blank screen
             if (!cancelled) setLicenseValid(false)
           }
         }
@@ -43,24 +43,15 @@ export default function App() {
     return () => { cancelled = true }
   }, [])
 
-  // ── Periodic license re-validation with server ──
-  // Runs every 5 minutes to catch server-side key deactivation/unbinding
   useEffect(() => {
     if (!licenseValid) return
-
     const revalidate = () => {
       call('revalidate_license_with_server')
-        .then(status => {
-          if (!status.valid) setLicenseValid(false)
-        })
-        .catch(() => {}) // Silently ignore errors (offline grace)
+        .then(status => { if (!status.valid) setLicenseValid(false) })
+        .catch(() => {})
     }
-
-    // First check 10s after app starts
     const initial = setTimeout(revalidate, 10_000)
-    // Then every 5 minutes
     const interval = setInterval(revalidate, 5 * 60 * 1000)
-
     return () => { clearTimeout(initial); clearInterval(interval) }
   }, [licenseValid])
 
@@ -80,16 +71,23 @@ export default function App() {
     return () => clearTimeout(timer)
   }, [licenseValid])
 
-  const PROTECTED_TABS = ['history', 'setup']
-
   const handleTabClick = (tabId) => {
-    // If tab is protected and admin PIN is set and not yet unlocked this session
-    if (PROTECTED_TABS.includes(tabId) && hasAdminPin() && !unlockedTabs.has(tabId)) {
+    if (PROTECTED_TABS.includes(tabId) && !unlockedTabs.has(tabId)) {
       setPendingTab(tabId)
       return
     }
     setActiveTab(tabId)
   }
+
+  const handleLockAll = () => {
+    setUnlockedTabs(new Set())
+    // If currently on a protected tab, go back to POS
+    if (PROTECTED_TABS.includes(activeTab)) {
+      setActiveTab('pos')
+    }
+  }
+
+  const hasUnlocked = unlockedTabs.size > 0
 
   if (licenseValid === null) {
     return (
@@ -147,12 +145,26 @@ export default function App() {
             >
               <span className="mr-1">{tab.icon}</span>
               {tab.label}
-              {PROTECTED_TABS.includes(tab.id) && hasAdminPin() && !unlockedTabs.has(tab.id) && (
+              {PROTECTED_TABS.includes(tab.id) && !unlockedTabs.has(tab.id) && (
                 <span className="ml-1 text-[10px] opacity-50">🔒</span>
               )}
             </button>
           ))}
         </div>
+
+        {/* Lock button — visible when any protected tab is unlocked */}
+        {hasUnlocked && (
+          <button
+            onClick={handleLockAll}
+            className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+              bg-red-50 text-red-600 hover:bg-red-100 border border-red-200
+              transition-all duration-200 hover:shadow-sm"
+            title="Lock History & Setup tabs"
+          >
+            <span>🔐</span>
+            <span>Lock</span>
+          </button>
+        )}
       </nav>
 
       <main className="flex-1 overflow-hidden">
