@@ -8,12 +8,16 @@ import History from './pages/History'
 import Recent from './pages/Recent'
 import Inventory from './pages/Inventory'
 import UpdateBanner from './components/UpdateBanner'
+import PasswordGate from './components/PasswordGate'
 
 export default function App() {
   const [licenseValid, setLicenseValid] = useState(null)
   const [activeTab, setActiveTab] = useState('pos')
   const [updateAvailable, setUpdateAvailable] = useState(null)
+  const [pendingTab, setPendingTab] = useState(null)
+  const [unlockedTabs, setUnlockedTabs] = useState(new Set())
   const { fetchSettings } = useSettingsStore()
+  const hasAdminPin = useSettingsStore(s => s.hasAdminPin)
 
   useEffect(() => {
     let cancelled = false
@@ -76,7 +80,14 @@ export default function App() {
     return () => clearTimeout(timer)
   }, [licenseValid])
 
+  const PROTECTED_TABS = ['history', 'setup']
+
   const handleTabClick = (tabId) => {
+    // If tab is protected and admin PIN is set and not yet unlocked this session
+    if (PROTECTED_TABS.includes(tabId) && hasAdminPin() && !unlockedTabs.has(tabId)) {
+      setPendingTab(tabId)
+      return
+    }
     setActiveTab(tabId)
   }
 
@@ -136,6 +147,9 @@ export default function App() {
             >
               <span className="mr-1">{tab.icon}</span>
               {tab.label}
+              {PROTECTED_TABS.includes(tab.id) && hasAdminPin() && !unlockedTabs.has(tab.id) && (
+                <span className="ml-1 text-[10px] opacity-50">🔒</span>
+              )}
             </button>
           ))}
         </div>
@@ -148,6 +162,18 @@ export default function App() {
         {activeTab === 'setup' && <Setup />}
         {activeTab === 'history' && <History />}
       </main>
+
+      {/* ═══════ Password Gate Modal ═══════ */}
+      {pendingTab && (
+        <PasswordGate
+          onUnlock={() => {
+            setUnlockedTabs(prev => new Set(prev).add(pendingTab))
+            setActiveTab(pendingTab)
+            setPendingTab(null)
+          }}
+          onCancel={() => setPendingTab(null)}
+        />
+      )}
     </div>
   )
 }

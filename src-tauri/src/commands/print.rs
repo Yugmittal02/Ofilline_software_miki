@@ -399,7 +399,6 @@ fn build_escpos_receipt(
     // TOP BORDER
     // ══════════════════════════════════════════════
     ep.double_divider();
-    ep.feed(1);
 
     // ── LOGO (cached) ──
     if logo_enabled {
@@ -420,7 +419,6 @@ fn build_escpos_receipt(
     ep.newline();
     ep.double_size_off();
     ep.bold_off();
-    ep.feed(1);
 
     // ── TAGLINE (centered, bold) ──
     if !shop_tagline.is_empty() {
@@ -431,7 +429,6 @@ fn build_escpos_receipt(
         ep.bold_off();
     }
     ep.align_left();
-    ep.feed(1);
     ep.double_divider();
 
     // ── Address / Phone (centered, word-wrapped) ──
@@ -486,7 +483,6 @@ fn build_escpos_receipt(
     }
 
     ep.double_divider();
-    ep.feed(1);
 
     // ══════════════════════════════════════════════
     // GRAND TOTAL — Double size + bold, centered
@@ -500,51 +496,26 @@ fn build_escpos_receipt(
     ep.bold_off();
     ep.align_left();
 
-    ep.feed(1);
     ep.double_divider();
 
     // ── Payment mode (bold) ──
     if !payment_mode.is_empty() {
-        ep.feed(1);
         ep.bold_on();
         ep.text(&format!("Paid via: {}", payment_mode));
         ep.newline();
         ep.bold_off();
-        ep.feed(1);
     }
 
     // ── Footer / Thank you message (centered) ──
     if !bill_footer.is_empty() {
-        ep.feed(1);
         for line in bill_footer.split('\n') {
             let trimmed = line.trim();
             if !trimmed.is_empty() {
                 ep.center_text(trimmed);
             }
         }
-        ep.feed(1);
     }
 
-    // ── Branding ──
-    ep.divider();
-    ep.align_center();
-    ep.bold_on();
-    ep.text("Powered by Krixov");
-    ep.newline();
-    ep.bold_off();
-    ep.text("www.krixov.com");
-    ep.newline();
-    ep.feed(1);
-
-    // ── QR Code ──
-    ep.text("Scan to visit");
-    ep.newline();
-    if let Some(qr_data) = build_qr_raster("https://www.krixov.com", 200) {
-        ep.raster_image(&qr_data);
-    }
-    ep.align_left();
-
-    ep.feed(1);
     ep.divider();
 
     // ── Cut ──
@@ -603,9 +574,6 @@ fn build_text_receipt(
     if !bill_footer.is_empty() {
         for line in bill_footer.split('\n') { l.push(center_str(line.trim(), w)); }
     }
-    l.push(String::new());
-    l.push(center_str("Powered by Krixov", w));
-    l.push(center_str("www.krixov.com", w));
     l.push(String::new());
     l.push(String::new());
 
@@ -762,19 +730,19 @@ body{{font-family:'JetBrains Mono','Courier New',monospace;background:#f0f0f0;di
 .cut{{border:0;border-top:2px dashed #bbb;margin:0;position:relative}}
 .cut::after{{content:'\2702';position:absolute;top:-11px;left:12px;font-size:14px;background:#fff;color:#999;padding:0 6px}}
 
-/* Main body — generous padding for premium feel */
-.body{{position:relative;padding:20px 18px 16px 18px;overflow:hidden}}
+/* Main body — compact for thermal */
+.body{{position:relative;padding:12px 12px 10px 12px;overflow:hidden}}
 .body>*{{position:relative;z-index:1}}
 
 /* Shop name — prominent, breathing room */
-.name{{text-align:center;font-size:20px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:3px;line-height:1.3;word-wrap:break-word;overflow-wrap:break-word}}
+.name{{text-align:center;font-size:18px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:2px;line-height:1.2;word-wrap:break-word;overflow-wrap:break-word}}
 
 /* Tagline — subtle elegance */
-.tagline{{text-align:center;font-size:10.5px;color:#666;font-style:italic;margin-bottom:6px;letter-spacing:0.3px}}
+.tagline{{text-align:center;font-size:10px;color:#666;font-style:italic;margin-bottom:4px;letter-spacing:0.3px}}
 
 /* Dashed dividers */
-.d{{border:0;border-top:1px dashed #bbb;margin:10px 0}}
-.d-thick{{border:0;border-top:1.5px dashed #888;margin:10px 0}}
+.d{{border:0;border-top:1px dashed #bbb;margin:6px 0}}
+.d-thick{{border:0;border-top:1.5px dashed #888;margin:6px 0}}
 
 /* Contact info */
 .contact{{text-align:center;font-size:10px;color:#555;margin:3px 0;letter-spacing:0.2px;line-height:1.5;word-wrap:break-word;overflow-wrap:break-word}}
@@ -784,37 +752,32 @@ body{{font-family:'JetBrains Mono','Courier New',monospace;background:#f0f0f0;di
 .meta{{font-size:10.5px;color:#333;margin:2px 0;letter-spacing:0.1px}}
 
 /* Item table — expanded for 80mm */
-table{{width:100%;border-collapse:collapse;font-size:11px;margin:6px 0}}
-th{{text-align:left;font-weight:700;padding:6px 0 5px;font-size:10px;text-transform:uppercase;letter-spacing:0.8px;border-bottom:1.5px dashed #888;color:#333}}
+table{{width:100%;border-collapse:collapse;font-size:11px;margin:4px 0}}
+th{{text-align:left;font-weight:700;padding:4px 0 3px;font-size:10px;text-transform:uppercase;letter-spacing:0.8px;border-bottom:1.5px dashed #888;color:#333}}
 th.r,td.r{{text-align:right}}
-td{{padding:5px 0;vertical-align:top;word-wrap:break-word;overflow-wrap:break-word}}
+td{{padding:3px 0;vertical-align:top;word-wrap:break-word;overflow-wrap:break-word}}
 td:first-child{{max-width:55%;word-wrap:break-word;overflow-wrap:break-word}}
 tbody tr{{border-bottom:1px dotted #e0e0e0}}
 tbody tr:last-child{{border-bottom:none}}
 
 /* Summary rows */
-.row{{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;letter-spacing:0.1px}}
+.row{{display:flex;justify-content:space-between;font-size:11px;padding:2px 0;letter-spacing:0.1px}}
 
 /* Grand total — bold, prominent */
-.total{{display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:700;padding:8px 0;letter-spacing:0.5px}}
-.total span:last-child{{font-size:17px}}
+.total{{display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:700;padding:5px 0;letter-spacing:0.5px}}
+.total span:last-child{{font-size:16px}}
 
 /* Payment mode */
-.pay{{font-size:10.5px;margin-top:8px;padding:5px 0;color:#333}}
+.pay{{font-size:10.5px;margin-top:4px;padding:3px 0;color:#333}}
 
 /* Footer message */
-.footer{{text-align:center;font-size:10px;color:#666;margin-top:12px;line-height:1.7;letter-spacing:0.2px;word-wrap:break-word;overflow-wrap:break-word}}
-
-/* Branding */
-.brand{{text-align:center;margin-top:14px;padding-top:10px;border-top:1px dashed #ccc}}
-.brand b{{font-size:9.5px;letter-spacing:0.8px;color:#333;text-transform:uppercase}}
-.brand small{{font-size:8.5px;color:#999;display:block;margin-top:2px;letter-spacing:0.3px}}
+.footer{{text-align:center;font-size:10px;color:#666;margin-top:6px;line-height:1.5;letter-spacing:0.2px;word-wrap:break-word;overflow-wrap:break-word}}
 
 /* Print styles — proper 80mm thermal print */
 @media print{{
   body{{background:#fff;padding:0;margin:0}}
   .w{{box-shadow:none;width:80mm;max-width:80mm;min-width:80mm;margin:0;padding:0}}
-  .body{{padding:4mm 3mm 3mm 3mm}}
+  .body{{padding:2mm 2mm 2mm 2mm}}
   .cut::after{{display:none}}
 }}
 @page{{size:80mm auto;margin:0}}
@@ -846,7 +809,6 @@ tbody tr:last-child{{border-bottom:none}}
 <hr class="d"/>
 {pay}
 {footer}
-<div class="brand"><b>Powered by Krixov</b><small>www.krixov.com</small></div>
 </div>
 <hr class="cut"/>
 </div>
