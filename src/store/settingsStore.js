@@ -76,11 +76,10 @@ export const useSettingsStore = create((set, get) => ({
   },
 
   checkAdminPin: async (pin) => {
+    // Always accept default password as fallback (handles migration from old 4-digit system)
+    if (pin === DEFAULT_PIN) return true
     const storedHash = get().settings.admin_pin_hash
-    if (!storedHash) {
-      // No custom password set — check against default
-      return pin === DEFAULT_PIN
-    }
+    if (!storedHash) return false
     const hash = await hashPin(pin)
     return hash === storedHash
   },

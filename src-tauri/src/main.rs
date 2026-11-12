@@ -36,6 +36,7 @@ fn main() {
             commands::menu::update_item_image,
             commands::menu::delete_item,
             commands::menu::seed_default_menu,
+            commands::menu::clear_inventory_data,
             commands::orders::save_order,
             commands::orders::get_orders,
             commands::orders::get_summary,

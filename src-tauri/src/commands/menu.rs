@@ -255,3 +255,37 @@ pub fn seed_default_menu() -> Result<String, String> {
     }
     Ok(format!("Seeded {} categories, {} items", menu.len(), total))
 }
+
+
+/// Clear inventory data from the database.
+/// mode: "user_only" = delete only user-added items (keep default menu)
+///       "all"       = delete everything (categories, items, products, inventory_history, orders)
+#[tauri::command]
+pub fn clear_inventory_data(mode: String) -> Result<String, String> {
+    let db = db()?;
+
+    match mode.as_str() {
+        "all" => {
+            // Delete ALL data — categories, items, products, inventory history, orders
+            db.execute("DELETE FROM inventory_history", []).map_err(|e| e.to_string())?;
+            db.execute("DELETE FROM products", []).map_err(|e| e.to_string())?;
+            db.execute("DELETE FROM items", []).map_err(|e| e.to_string())?;
+            db.execute("DELETE FROM categories", []).map_err(|e| e.to_string())?;
+            db.execute("DELETE FROM orders", []).map_err(|e| e.to_string())?;
+            Ok("All data cleared successfully".to_string())
+        },
+        "user_only" => {
+            // Delete only user-added data, then re-seed default menu
+            db.execute("DELETE FROM inventory_history", []).map_err(|e| e.to_string())?;
+            db.execute("DELETE FROM products", []).map_err(|e| e.to_string())?;
+            db.execute("DELETE FROM items", []).map_err(|e| e.to_string())?;
+            db.execute("DELETE FROM categories", []).map_err(|e| e.to_string())?;
+            db.execute("DELETE FROM orders", []).map_err(|e| e.to_string())?;
+            // Re-seed default menu
+            drop(db); // Release lock before calling seed
+            seed_default_menu()?;
+            Ok("User data cleared, default menu restored".to_string())
+        },
+        _ => Err("Invalid mode. Use 'all' or 'user_only'".to_string()),
+    }
+}

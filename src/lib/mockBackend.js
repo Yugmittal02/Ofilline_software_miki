@@ -859,6 +859,29 @@ export async function handleMockCommand(command, args = {}) {
     return { success: true }
   }
 
+  if (command === 'clear_inventory_data') {
+    const mode = args.mode || 'all'
+    // Clear all stored data
+    setItem(STORAGE_KEYS.ITEMS, [])
+    setItem(STORAGE_KEYS.ORDERS, [])
+    setItem(STORAGE_KEYS.INVENTORY_HISTORY, [])
+    localStorage.removeItem('billeasy_deleted_product_ids')
+    localStorage.removeItem('billeasy_catalog_migrated_v2')
+    setItem(STORAGE_KEYS.ORDER_COUNTER, 1000)
+
+    if (mode === 'user_only') {
+      // Reset to defaults
+      setItem(STORAGE_KEYS.CATEGORIES, DEFAULT_CATEGORIES)
+      setItem(STORAGE_KEYS.PRODUCTS, DEFAULT_PRODUCTS)
+      return 'User data cleared, default menu restored'
+    } else {
+      // Clear everything
+      setItem(STORAGE_KEYS.CATEGORIES, [])
+      setItem(STORAGE_KEYS.PRODUCTS, [])
+      return 'All data cleared successfully'
+    }
+  }
+
   // ════════ INVENTORY PRODUCT CRUD ════════
   if (command === 'get_products') {
     const products = getUnifiedProducts()

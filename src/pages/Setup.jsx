@@ -18,6 +18,9 @@ export default function Setup() {
   const [newPwd, setNewPwd] = useState('')
   const [confirmPwd, setConfirmPwd] = useState('')
   const [pwdChanging, setPwdChanging] = useState(false)
+  const [clearMode, setClearMode] = useState('user_only')
+  const [clearConfirm, setClearConfirm] = useState('')
+  const [clearing, setClearing] = useState(false)
   const fileInputRef = useRef(null)
 
   useEffect(() => {
@@ -126,6 +129,21 @@ export default function Setup() {
     } catch (e) {
       showToast('Failed to change password', 'error')
     } finally { setPwdChanging(false) }
+  }
+
+  const handleClearData = async () => {
+    if (clearConfirm !== 'DELETE') {
+      showToast('Type DELETE to confirm', 'error')
+      return
+    }
+    setClearing(true)
+    try {
+      const result = await call('clear_inventory_data', { mode: clearMode })
+      setClearConfirm('')
+      showToast(typeof result === 'string' ? result : 'Data cleared successfully!')
+    } catch (e) {
+      showToast(typeof e === 'string' ? e : 'Failed to clear data', 'error')
+    } finally { setClearing(false) }
   }
 
   const handleSaveCloudinary = async () => {
@@ -441,6 +459,62 @@ export default function Setup() {
               </p>
             </div>
           )}
+        </div>
+
+        {/* ═══════════════ DATA MANAGEMENT ═══════════════ */}
+        <div>
+          <div className="settings-section-title">🗑️ Data Management</div>
+          <div className="settings-card">
+            <div className="px-4 py-3">
+              <p className="text-xs text-gray-500 mb-1">
+                Permanently delete inventory data (categories, items, products, orders, stock history).
+              </p>
+              <p className="text-xs text-red-500 font-medium">
+                ⚠️ This action cannot be undone! All selected data will be permanently removed.
+              </p>
+            </div>
+
+            <div className="settings-row">
+              <span className="text-sm text-gray-500 w-32 flex-shrink-0">Delete Mode</span>
+              <div className="flex-1 space-y-2">
+                <label className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-all ${clearMode === 'user_only' ? 'border-orange-300 bg-orange-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                  <input type="radio" name="clearMode" value="user_only" checked={clearMode === 'user_only'} onChange={() => setClearMode('user_only')} className="accent-orange-500" />
+                  <div>
+                    <div className="text-sm font-medium text-gray-800">Reset to Default Menu</div>
+                    <div className="text-xs text-gray-400">Delete all data and restore the original default menu (14 categories, 106 items)</div>
+                  </div>
+                </label>
+                <label className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-all ${clearMode === 'all' ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                  <input type="radio" name="clearMode" value="all" checked={clearMode === 'all'} onChange={() => setClearMode('all')} className="accent-red-500" />
+                  <div>
+                    <div className="text-sm font-medium text-gray-800">Delete Everything</div>
+                    <div className="text-xs text-gray-400">Delete ALL categories, items, products, orders, and stock history — empty database</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div className="settings-row">
+              <span className="text-sm text-gray-500 w-32 flex-shrink-0">Confirm</span>
+              <input
+                value={clearConfirm}
+                onChange={e => setClearConfirm(e.target.value)}
+                className="input-premium text-sm flex-1"
+                placeholder={'Type DELETE to confirm'}
+              />
+            </div>
+
+            <div className="settings-row justify-end">
+              <button
+                onClick={handleClearData}
+                disabled={clearing || clearConfirm !== 'DELETE'}
+                className="text-xs py-2 px-5 rounded-xl font-medium transition-all disabled:opacity-40
+                  bg-red-600 text-white hover:bg-red-700 shadow-sm disabled:cursor-not-allowed"
+              >
+                {clearing ? '⏳ Deleting...' : clearMode === 'all' ? '🗑️ Delete Everything' : '🔄 Reset to Default'}
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* ═══════════════ PASSWORD SETTINGS ═══════════════ */}
